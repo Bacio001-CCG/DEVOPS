@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  mongodb:
+    restart: always
+
+    image: mongo:latest
+    ports:
+      - "27000:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongo
+      - MONGO_INITDB_ROOT_PASSWORD=fi2idojiekgivkck2kjhi4
+    volumes:
+      - /docker/mongodb/data:/data/db
