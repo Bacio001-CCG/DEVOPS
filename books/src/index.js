@@ -1,12 +1,12 @@
 import 'dotenv/config';
 import express from 'express';
 
-import indexRouter from './routes/index.js';
+import bookRouter from './routes/book.js';
 
 const app = express();
 
 app.use(express.json());
-app.use('/', indexRouter);
+app.use('/', bookRouter);
 app.listen(process.env.PORT, () => {
     console.log(`Server is running on port ${process.env.PORT}`);
 })

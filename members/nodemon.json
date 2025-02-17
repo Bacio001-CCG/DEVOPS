@@ -1,5 +1,5 @@
 {
-  "watch": ["src"],
+  "watch": ["src", "src/*"],
   "ext": ".js",
   "ignore": [],
   "exec": "npx js-node ./src/index.js"
