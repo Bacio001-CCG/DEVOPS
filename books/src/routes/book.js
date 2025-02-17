@@ -20,7 +20,9 @@ router.get(
       } else {
         list = await db.collection("books").find().toArray();
       }
-      console.log("test2");
+      if(list.length === 0) {
+        return res.status(404).json("Geen boeken gevonden");
+      }
       return res.status(200).json(list);
     } catch (err) {
       return res
