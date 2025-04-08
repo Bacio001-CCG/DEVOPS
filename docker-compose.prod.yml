@@ -48,6 +48,23 @@ services:
       - ./services/read/.env
     networks:
       - main-network
+      
+  auth:
+    build:
+      context: ./services/auth
+      dockerfile: Dockerfile.prod
+    ports:
+      - "5007:5007"
+    volumes:
+      - ./services/auth/src:/app/services/auth/src
+      - ./services/auth/package.json:/app/services/auth/package.json
+      - ./services/auth/package-lock.json:/app/services/auth/package-lock.json
+      - ./services/auth/.env:/app/services/auth/.env
+    stdin_open: true
+    env_file:
+      - ./services/auth/.env
+    networks:
+      - main-network
 
   register:
     build:
