@@ -11,8 +11,8 @@ services:
     volumes:
       - /docker/mongodb/data:/data/db
     networks:
-      - bookclub-network
+      - main-network
 
 networks:
-  bookclub-network:
+  main-network:
     driver: bridge

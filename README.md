@@ -3,8 +3,7 @@
 App Commands:
 
 - npm run docker:dev
-- npm run docker:dev
--
+- npm run docker:prod
 
 DB Commands:
 

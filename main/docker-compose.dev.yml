@@ -14,8 +14,8 @@ services:
     env_file:
       - .env
     networks:
-      - bookclub-network
+      - main-network
 
 networks:
-  bookclub-network:
+  main-network:
     driver: bridge
