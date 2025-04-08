@@ -33,3 +33,5 @@ jobs:
         npm install
         echo "Running tests in ${{ matrix.folder }}..."
         npm run test
+        echo "Running linter in ${{ matrix.folder }}..."
+        npm run lint
