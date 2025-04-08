@@ -1,5 +1,5 @@
 {
-  "name": "members",
+  "name": "score",
   "version": "0.0.1",
   "private": true,
   "main": "src/index.js",
@@ -7,9 +7,7 @@
   "scripts": {
     "prod": "node src/index.js",
     "dev": "npx nodemon",
-    "test": "jest",
-    "docker:dev": "docker compose -f docker-compose.dev.yml up --build",
-    "docker:prod": "docker compose -f docker-compose.prod.yml up --build -d"
+    "test": "jest"
   },
   "dependencies": {
     "axios": "^1.7.9",

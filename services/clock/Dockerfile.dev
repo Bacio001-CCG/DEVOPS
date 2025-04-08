@@ -1,7 +1,7 @@
 FROM node:23-alpine
 
 ENV NODE_ENV=development
-ENV PORT=5001
+ENV PORT=5000
 
 WORKDIR /app
 
@@ -10,6 +10,6 @@ COPY src ./src
 
 RUN npm install
 
-EXPOSE 5001
+EXPOSE 5000
 
 CMD ["npm", "run", "dev"]

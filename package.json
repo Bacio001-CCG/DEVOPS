@@ -1,0 +1,9 @@
+{
+    "name": "books",
+    "version": "0.0.1",
+    "private": true,
+    "scripts": {
+        "docker:dev": "docker compose -f docker-compose.dev.yml up --build",
+        "docker:prod": "docker compose -f docker-compose.prod.yml up --build -d"
+    }
+}
