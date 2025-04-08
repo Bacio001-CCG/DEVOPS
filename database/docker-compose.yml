@@ -4,7 +4,7 @@ services:
 
     image: mongo:latest
     ports:
-      - "27017:27017"
+      - "27018:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=mongo
       - MONGO_INITDB_ROOT_PASSWORD=fi2idojiekgivkck2kjhi4
