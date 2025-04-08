@@ -29,12 +29,9 @@ const router = express.Router();
  */
 router.get("/:target/photos", async function (req, res) {
   try {
-    console.log("Fetching photos");
-    const list = await db.collection("photos").find().toArray();
-    console.log("Showing photos");
+    const list = [];
     return res.status(200).json(list);
   } catch (err) {
-    console.log(err);
     return res
       .status(500)
       .json({ message: err?.message ?? "Internal Server Error" });
