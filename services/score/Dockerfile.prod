@@ -1,0 +1,15 @@
+FROM node:23-alpine
+
+ENV NODE_ENV=production
+ENV PORT=5005
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY src ./src
+
+RUN npm install --omit=dev
+
+EXPOSE 5005
+
+CMD ["npm", "run", "prod"]
