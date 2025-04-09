@@ -1,6 +1,14 @@
 {
-  "watch": ["src"],
-  "ext": "js,ts",
-  "ignore": ["node_modules"],
-  "exec": "npx ts-node ./src/index.ts"
+    "watch": [
+        "src/**"
+    ],
+    "ext": "js,json",
+    "ignore": [
+        "node_modules"
+    ],
+    "legacyWatch": true,
+    "polling": true,
+    "verbose": true,
+    "delay": 1000,
+    "restartable": "rs"
 }

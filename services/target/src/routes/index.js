@@ -29,7 +29,7 @@ const router = express.Router();
  */
 router.get("/:target/photos", async function (req, res) {
   try {
-    const list = [];
+    const list = [4];
     return res.status(200).json(list);
   } catch (err) {
     return res

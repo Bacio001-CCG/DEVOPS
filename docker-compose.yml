@@ -1,0 +1,137 @@
+services:
+  clock:
+    build:
+      context: ./services/clock
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5001:5001"
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+    volumes:
+      - ./services/clock/src:/app/src
+      - ./services/clock/package.json:/app/package.json
+      - ./services/clock/package-lock.json:/app/package-lock.json
+    stdin_open: true
+    env_file:
+      - .env
+    networks:
+      - main-network
+  mail:
+    build:
+      context: ./services/mail
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5002:5002"
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+    volumes:
+      - ./services/mail/src:/app/src
+      - ./services/mail/package.json:/app/package.json
+      - ./services/mail/package-lock.json:/app/package-lock.json
+    stdin_open: true
+    env_file:
+      - .env
+    networks:
+      - main-network
+
+  read:
+    build:
+      context: ./services/read
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5003:5003"
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+    volumes:
+      - ./services/read/src:/app/src
+      - ./services/read/package.json:/app/package.json
+      - ./services/read/package-lock.json:/app/package-lock.json
+    stdin_open: true
+    env_file:
+      - .env
+    networks:
+      - main-network
+
+  register:
+    build:
+      context: ./services/register
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5004:5004"
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+    volumes:
+      - ./services/register/src:/app/src
+      - ./services/register/package.json:/app/package.json
+      - ./services/register/package-lock.json:/app/package-lock.json
+    stdin_open: true
+    env_file:
+      - .env
+    networks:
+      - main-network
+
+  score:
+    build:
+      context: ./services/score
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5005:5005"
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+    volumes:
+      - ./services/score/src:/app/src
+      - ./services/score/package.json:/app/package.json
+      - ./services/score/package-lock.json:/app/package-lock.json
+    stdin_open: true
+    env_file:
+      - .env
+    networks:
+      - main-network
+
+  target:
+    build:
+      context: ./services/target
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5006:5006"
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+    stdin_open: true
+    env_file:
+      - .env
+    networks:
+      - main-network
+    volumes:
+      - ./services/target/src:/app/src
+      - ./services/target/package.json:/app/package.json
+      - ./services/target/package-lock.json:/app/package-lock.json
+
+  mongodb:
+    restart: always
+
+    image: mongo:latest
+    ports:
+      - "27018:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+    volumes:
+      - /docker/mongodb/data:/data/db
+    networks:
+      - main-network
+
+networks:
+  main-network:
+    driver: bridge
