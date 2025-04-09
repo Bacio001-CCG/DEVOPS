@@ -64,6 +64,24 @@ services:
     depends_on:
       - rabbitmq  
     networks:
+    
+  auth:
+    build:
+      context: ./services/auth
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5007:5007"
+    volumes:
+      - ./services/auth/src:/app/services/auth/src
+      - ./services/auth/package.json:/app/services/auth/package.json
+      - ./services/auth/package-lock.json:/app/services/auth/package-lock.json
+      - .env:/app/.env
+    stdin_open: true
+    env_file:
+      - .env
+    networks:
+      - main-network
+
 
   register:
     build:

@@ -1,0 +1,26 @@
+{
+    "name": "clock",
+    "version": "0.0.1",
+    "private": true,
+    "main": "src/index.js",
+    "type": "module",
+    "scripts": {
+        "prod": "node src/index.js",
+        "dev": "npx nodemon",
+        "test": "jest"
+    },
+    "dependencies": {
+        "axios": "^1.7.9",
+        "bcrypt": "^5.1.1",
+        "dotenv": "^16.4.7",
+        "express": "^4.21.2",
+        "jest": "^29.7.0",
+        "jsonwebtoken": "^9.0.2",
+        "mongodb": "^6.13.0",
+        "passport": "^0.7.0",
+        "passport-jwt": "^4.0.1"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.9"
+    }
+}
