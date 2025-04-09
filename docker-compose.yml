@@ -16,8 +16,10 @@ services:
     stdin_open: true
     env_file:
       - .env
+    depends_on:
+      - rabbitmq  
     networks:
-      - main-network
+
   mail:
     build:
       context: ./services/mail
@@ -35,8 +37,12 @@ services:
     stdin_open: true
     env_file:
       - .env
+    depends_on:
+      - rabbitmq  
+      - mail-mongodb
     networks:
-      - main-network
+      - rabbitmq
+      - mail
 
   read:
     build:
@@ -55,8 +61,9 @@ services:
     stdin_open: true
     env_file:
       - .env
+    depends_on:
+      - rabbitmq  
     networks:
-      - main-network
     
   auth:
     build:
@@ -75,6 +82,7 @@ services:
     networks:
       - main-network
 
+
   register:
     build:
       context: ./services/register
@@ -92,8 +100,9 @@ services:
     stdin_open: true
     env_file:
       - .env
+    depends_on:
+      - rabbitmq  
     networks:
-      - main-network
 
   score:
     build:
@@ -112,8 +121,9 @@ services:
     stdin_open: true
     env_file:
       - .env
+    depends_on:
+      - rabbitmq  
     networks:
-      - main-network
 
   target:
     build:
@@ -129,26 +139,73 @@ services:
     env_file:
       - .env
     networks:
-      - main-network
+      - rabbitmq
+    depends_on:
+      - rabbitmq      
     volumes:
       - ./services/target/src:/app/src
       - ./services/target/package.json:/app/package.json
       - ./services/target/package-lock.json:/app/package-lock.json
-
-  mongodb:
+  
+  rabbitmq:
+    image: rabbitmq:4.0.7
+    healthcheck:
+      test: [ "CMD-SHELL", "rabbitmqctl status || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     restart: always
+    networks:
+      - rabbitmq
+    attach: false
 
+  auth-mongodb:
+    restart: always
     image: mongo:latest
     ports:
-      - "27018:27017"
+      - "${MONGO_AUTH_PORT}:${MONGO_AUTH_PORT}"
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_AUTH_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_AUTH_ROOT_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     volumes:
-      - /docker/mongodb/data:/data/db
+      - /docker/auth-mongodb/data:/data/db
     networks:
-      - main-network
+      - auth
+
+  mail-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "${MONGO_MAIL_PORT}:${MONGO_MAIL_PORT}"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_MAIL_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_MAIL_ROOT_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - /docker/mail-mongodb/data:/data/db
+    networks:
+      - mail
+
 
 networks:
-  main-network:
+  auth:
+    driver: bridge
+  mail:
+    driver: bridge
+  rabbitmq:
     driver: bridge
