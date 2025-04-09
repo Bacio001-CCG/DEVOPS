@@ -5,11 +5,14 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "5001:5001"
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
     volumes:
-      - ./services/clock/src:/app/services/clock/src
-      - ./services/clock/package.json:/app/services/clock/package.json
-      - ./services/clock/package-lock.json:/app/services/clock/package-lock.json
-      - .env:/app/.env
+      - ./services/clock/src:/app/src
+      - ./services/clock/package.json:/app/package.json
+      - ./services/clock/package-lock.json:/app/package-lock.json
     stdin_open: true
     env_file:
       - .env
@@ -21,11 +24,14 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "5002:5002"
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
     volumes:
-      - ./services/mail/src:/app/services/mail/src
-      - ./services/mail/package.json:/app/services/mail/package.json
-      - ./services/mail/package-lock.json:/app/services/mail/package-lock.json
-      - .env:/app/.env
+      - ./services/mail/src:/app/src
+      - ./services/mail/package.json:/app/package.json
+      - ./services/mail/package-lock.json:/app/package-lock.json
     stdin_open: true
     env_file:
       - .env
@@ -38,11 +44,14 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "5003:5003"
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
     volumes:
-      - ./services/read/src:/app/services/read/src
-      - ./services/read/package.json:/app/services/read/package.json
-      - ./services/read/package-lock.json:/app/services/read/package-lock.json
-      - .env:/app/.env
+      - ./services/read/src:/app/src
+      - ./services/read/package.json:/app/package.json
+      - ./services/read/package-lock.json:/app/package-lock.json
     stdin_open: true
     env_file:
       - .env
@@ -72,11 +81,14 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "5004:5004"
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
     volumes:
-      - ./services/register/src:/app/services/register/src
-      - ./services/register/package.json:/app/services/register/package.json
-      - ./services/register/package-lock.json:/app/services/register/package-lock.json
-      - .env:/app/.env
+      - ./services/register/src:/app/src
+      - ./services/register/package.json:/app/package.json
+      - ./services/register/package-lock.json:/app/package-lock.json
     stdin_open: true
     env_file:
       - .env
@@ -89,11 +101,14 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "5005:5005"
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
     volumes:
-      - ./services/score/src:/app/services/score/src
-      - ./services/score/package.json:/app/services/score/package.json
-      - ./services/score/package-lock.json:/app/services/score/package-lock.json
-      - .env:/app/.env
+      - ./services/score/src:/app/src
+      - ./services/score/package.json:/app/package.json
+      - ./services/score/package-lock.json:/app/package-lock.json
     stdin_open: true
     env_file:
       - .env
@@ -106,16 +121,19 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "5006:5006"
-    volumes:
-      - ./services/target/src:/app/services/target/src
-      - ./services/target/package.json:/app/services/target/package.json
-      - ./services/target/package-lock.json:/app/services/target/package-lock.json
-      - .env:/app/.env
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
     stdin_open: true
     env_file:
       - .env
     networks:
       - main-network
+    volumes:
+      - ./services/target/src:/app/src
+      - ./services/target/package.json:/app/package.json
+      - ./services/target/package-lock.json:/app/package-lock.json
 
   mongodb:
     restart: always

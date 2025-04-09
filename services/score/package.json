@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "prod": "node src/index.js",
-    "dev": "npx nodemon",
+    "dev": "nodemon --legacy-watch --polling-interval 4000 src/index.js",
     "test": "jest"
   },
   "dependencies": {
