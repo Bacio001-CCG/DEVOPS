@@ -18,7 +18,6 @@ services:
       - .env
     depends_on:
       - rabbitmq  
-    networks:
 
   mail:
     build:
@@ -63,25 +62,6 @@ services:
       - .env
     depends_on:
       - rabbitmq  
-    networks:
-    
-  auth:
-    build:
-      context: ./services/auth
-      dockerfile: Dockerfile.dev
-    ports:
-      - "5007:5007"
-    volumes:
-      - ./services/auth/src:/app/services/auth/src
-      - ./services/auth/package.json:/app/services/auth/package.json
-      - ./services/auth/package-lock.json:/app/services/auth/package-lock.json
-      - .env:/app/.env
-    stdin_open: true
-    env_file:
-      - .env
-    networks:
-      - main-network
-
 
   register:
     build:
@@ -102,7 +82,6 @@ services:
       - .env
     depends_on:
       - rabbitmq  
-    networks:
 
   score:
     build:
@@ -123,7 +102,6 @@ services:
       - .env
     depends_on:
       - rabbitmq  
-    networks:
 
   target:
     build:
@@ -147,6 +125,22 @@ services:
       - ./services/target/package.json:/app/package.json
       - ./services/target/package-lock.json:/app/package-lock.json
   
+  auth:
+    build:
+      context: ./services/auth
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5007:5007"
+    volumes:
+      - ./services/auth/src:/app/src
+      - ./services/auth/package.json:/app/package.json
+      - ./services/auth/package-lock.json:/app/package-lock.json
+    stdin_open: true
+    env_file:
+      - .env
+    networks:
+      - auth
+
   rabbitmq:
     image: rabbitmq:4.0.7
     healthcheck:
@@ -167,7 +161,7 @@ services:
     restart: always
     image: mongo:latest
     ports:
-      - "${MONGO_AUTH_PORT}:${MONGO_AUTH_PORT}"
+      - "${MONGO_AUTH_PORT}:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_AUTH_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_AUTH_ROOT_PASSWORD}
@@ -186,7 +180,7 @@ services:
     restart: always
     image: mongo:latest
     ports:
-      - "${MONGO_MAIL_PORT}:${MONGO_MAIL_PORT}"
+      - "${MONGO_MAIL_PORT}:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_MAIL_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_MAIL_ROOT_PASSWORD}
