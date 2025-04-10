@@ -10,6 +10,7 @@
         "test": "jest"
     },
     "dependencies": {
+        "amqplib": "^0.10.7",
         "axios": "^1.7.9",
         "bcrypt": "^5.1.1",
         "dotenv": "^16.4.7",

@@ -140,6 +140,10 @@ services:
       - .env
     networks:
       - auth
+      - rabbitmq
+    depends_on:
+      - auth-mongodb
+      - rabbitmq
 
   rabbitmq:
     image: rabbitmq:4.0.7
