@@ -1,6 +1,7 @@
 import passport from "passport";
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { db } from '../database.js';
+import { ObjectId } from "mongodb";
 
 const opts = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -10,7 +11,7 @@ const opts = {
 passport.use(
   new JwtStrategy(opts, async (jwtPayload, done) => {
     try {
-      const user = await db.collection('users').findOne({ _id: jwtPayload.id });
+      const user = await db.collection('users').findOne({ _id: new ObjectId(jwtPayload.id) });
       if (user) {
         return done(null, user);
       } else {

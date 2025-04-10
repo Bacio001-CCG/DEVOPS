@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import nodemailer from "nodemailer";
+import RabbitMQClient from "./rabbitmq.js"
 
 const app = express();
 
@@ -19,10 +20,36 @@ app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
 });
 
+const rabbitMQClient = new RabbitMQClient([
+  {
+    queue: "send_email",
+    function: function (msg) {
+      const content = JSON.parse(msg.content.toString());
+      sendEmail(content.to, content.subject, content.text);
+    },
+  },
+]);
+
+const sendEmail = async (to, subject, text) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to,
+    subject,
+    text,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent: " + info.response);
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
+}; 
+
 app.post("/", (req, res) => {
   const mailOptions = {
     from: "kartonkoekje@gmail.com",
-    to: "casbackx@gmail.com",
+    to: "ajw.berkers@student.avans.nl",
     subject: "Sending Email using Node.js",
     text: "That was easy!",
   };

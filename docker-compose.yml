@@ -161,7 +161,7 @@ services:
       - rabbitmq
     depends_on:
       - auth-mongodb
-      - rabbitmq   
+      - rabbitmq
 
   rabbitmq:
     image: rabbitmq:4.0.7
