@@ -1,35 +1,25 @@
 import "dotenv/config";
-import express from "express";
-import swaggerUI from "swagger-ui-express";
-import swaggerJsDoc from "swagger-jsdoc";
+import axios from "axios";
+import RabbitMQClient from "./rabbitmq.js";
+import { searchWithBase64 } from "./imagga.js";
 
-import routes from "./routes/index.js";
+const API_ENDPOINT = "https://api.imagga.com/v2";
+const CATEGORIZER = "general_v3";
+const INDEX_NAME = "similarity_scoring";
 
-const app = express();
-
-const swaggerOptions = {
-  swaggerDefinition: {
-    myapi: "0.0.1",
-    info: {
-      title: "Devops API",
-      version: "0.0.1",
-      description: "API documentation",
-    },
-    servers: [
-      {
-        url: "http://localhost:" + process.env.PORT,
-      },
-    ],
+const rabbitMQClient = new RabbitMQClient([
+  {
+    queue: "score_photo",
+    consume: true,
+    function: calculateScore,
   },
-  apis: ["./src/routes/*.js"],
-};
+]);
 
-const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use(express.json());
-app.use("/", routes);
-app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
-app.listen(process.env.PORT, () => {
-  console.log(`Server is running on port ${process.env.PORT}`);
-});
+async function calculateScore(msg) {
+  const { target, photo } = JSON.parse(msg.content.toString());
 
-export default app;
+  const result = await searchWithBase64(photo);
+  console.log("Search result:", result);
+
+  console.log(`Processing score for target: ${target}`);
+}

@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import swaggerUI from "swagger-ui-express";
 import swaggerJsDoc from "swagger-jsdoc";
+import fileUpload from "express-fileupload";
 
 import routes from "./routes/index.js";
 
@@ -25,9 +26,19 @@ const swaggerOptions = {
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(
+  fileUpload({
+    createParentPath: true,
+    limits: { fileSize: 50 * 1024 * 1024 },
+  })
+);
+
 app.use("/", routes);
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
+
 app.listen(5006, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
 });

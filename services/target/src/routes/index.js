@@ -5,22 +5,14 @@ import RabbitMQClient from "../rabbitmq.js";
 
 const rabbitMQClient = new RabbitMQClient([
   {
-    queue: "test",
-    function: function (msg) {
-      testFunction(msg);
-    },
-  },
-  {
-    queue: "test2",
-    function: function (msg) {
-      testFunction(msg);
-    },
+    queue: "score_photo",
+    consume: false,
   },
 ]);
 
-const testFunction = async (msg) => {
-  console.log("Received:", msg.content.toString());
-};
+// const testFunction = async (msg) => {
+//   console.log("Received:", msg.content.toString());
+// };
 
 /**
  * @swagger
@@ -50,7 +42,7 @@ const testFunction = async (msg) => {
 router.get("/:target/photos", async function (req, res) {
   try {
     // Connect to RabbitMQ
-    rabbitMQClient.send("test", "Hello World!");
+    // rabbitMQClient.send("test", "Hello World!");
 
     // Change the response to verify code update is working
     const list = [1, 3, 5, 7, 9]; // Changed values
@@ -78,6 +70,17 @@ router.get("/:target/photos", async function (req, res) {
  *         description: Target identifier
  *         schema:
  *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: The photo file to upload
  *     responses:
  *       200:
  *         description: Photo successfully received
@@ -86,9 +89,41 @@ router.get("/:target/photos", async function (req, res) {
  */
 router.post("/:target/photo", async function (req, res) {
   try {
-    return res.status(200).json("Photo recieved");
+    const files = req.files;
+    const formData = req.body;
+
+    if (!files || Object.keys(files).length === 0) {
+      return res.status(400).json({ message: "No files were uploaded." });
+    }
+
+    const results = Object.keys(files).map(async (key) => {
+      const file = files[key];
+      const fileBase64 = file.data.toString("base64");
+      const fileName = file.name;
+      await db.collection("photos").insertOne({
+        fileName: fileName,
+        fileBase64: fileBase64,
+        target: req.params.target,
+      });
+      return rabbitMQClient.send(
+        "score_photo",
+        JSON.stringify({
+          target: req.params.target,
+          photo: fileBase64,
+        })
+      );
+    });
+
+    await Promise.all(results);
+    return res.status(200).json({
+      message: "Photos received and saved",
+      formData: formData,
+    });
   } catch (err) {
-    return res.status(500).json(err?.message ?? "Internal Server Error");
+    console.error("Error in photo upload handler:", err);
+    return res
+      .status(500)
+      .json({ message: err?.message ?? "Internal Server Error" });
   }
 });
 
