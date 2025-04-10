@@ -7,10 +7,20 @@ const rabbitMQClient = new RabbitMQClient([
   {
     queue: "test",
     function: function (msg) {
-      console.log("Received:", msg.content.toString());
+      testFunction(msg);
+    },
+  },
+  {
+    queue: "test2",
+    function: function (msg) {
+      testFunction(msg);
     },
   },
 ]);
+
+const testFunction = async (msg) => {
+  console.log("Received:", msg.content.toString());
+};
 
 /**
  * @swagger

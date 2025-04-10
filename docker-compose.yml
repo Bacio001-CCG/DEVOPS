@@ -16,8 +16,12 @@ services:
     stdin_open: true
     env_file:
       - .env
+    networks:
+      - clock
+      - rabbitmq
     depends_on:
-      - rabbitmq  
+      - clock-mongodb
+      - rabbitmq    
 
   mail:
     build:
@@ -36,12 +40,12 @@ services:
     stdin_open: true
     env_file:
       - .env
-    depends_on:
-      - rabbitmq  
-      - mail-mongodb
     networks:
-      - rabbitmq
       - mail
+      - rabbitmq
+    depends_on:
+      - mail-mongodb
+      - rabbitmq   
 
   read:
     build:
@@ -60,8 +64,12 @@ services:
     stdin_open: true
     env_file:
       - .env
+    networks:
+      - read
+      - rabbitmq
     depends_on:
-      - rabbitmq  
+      - read-mongodb
+      - rabbitmq   
 
   register:
     build:
@@ -80,8 +88,12 @@ services:
     stdin_open: true
     env_file:
       - .env
+    networks:
+      - register
+      - rabbitmq
     depends_on:
-      - rabbitmq  
+      - register-mongodb
+      - rabbitmq   
 
   score:
     build:
@@ -100,8 +112,12 @@ services:
     stdin_open: true
     env_file:
       - .env
+    networks:
+      - score
+      - rabbitmq
     depends_on:
-      - rabbitmq  
+      - score-mongodb
+      - rabbitmq    
 
   target:
     build:
@@ -115,15 +131,17 @@ services:
       - NODE_ENV=development
     stdin_open: true
     env_file:
-      - .env
-    networks:
-      - rabbitmq
-    depends_on:
-      - rabbitmq      
+      - .env  
     volumes:
       - ./services/target/src:/app/src
       - ./services/target/package.json:/app/package.json
       - ./services/target/package-lock.json:/app/package-lock.json
+    networks:
+      - target
+      - rabbitmq
+    depends_on:
+      - target-mongodb
+      - rabbitmq   
   
   auth:
     build:
