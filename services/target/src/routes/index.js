@@ -1,6 +1,16 @@
 import express from "express";
 import { db } from "../database.js";
 const router = express.Router();
+import RabbitMQClient from "../rabbitmq.js";
+
+const rabbitMQClient = new RabbitMQClient([
+  {
+    queue: "test",
+    function: function (msg) {
+      console.log("Received:", msg.content.toString());
+    },
+  },
+]);
 
 /**
  * @swagger
@@ -29,7 +39,12 @@ const router = express.Router();
  */
 router.get("/:target/photos", async function (req, res) {
   try {
-    const list = [4];
+    // Connect to RabbitMQ
+    rabbitMQClient.send("test", "Hello World!");
+
+    // Change the response to verify code update is working
+    const list = [1, 3, 5, 7, 9]; // Changed values
+
     return res.status(200).json(list);
   } catch (err) {
     return res

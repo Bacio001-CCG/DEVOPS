@@ -195,11 +195,116 @@ services:
     networks:
       - mail
 
+  clock-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "${MONGO_CLOCK_PORT}:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_CLOCK_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_CLOCK_ROOT_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - /docker/clock-mongodb/data:/data/db
+    networks:
+      - clock
+
+  read-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "${MONGO_READ_PORT}:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_READ_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_READ_ROOT_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - /docker/read-mongodb/data:/data/db
+    networks:
+      - read
+
+  register-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "${MONGO_REGISTER_PORT}:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_REGISTER_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_REGISTER_ROOT_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - /docker/register-mongodb/data:/data/db
+    networks:
+      - register
+
+
+  score-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "${MONGO_SCORE_PORT}:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_SCORE_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_SCORE_ROOT_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - /docker/score-mongodb/data:/data/db
+    networks:
+      - score
+
+  target-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "${MONGO_TARGET_PORT}:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_TARGET_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_TARGET_ROOT_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - /docker/target-mongodb/data:/data/db
+    networks:
+      - target
 
 networks:
   auth:
     driver: bridge
   mail:
     driver: bridge
+  clock:
+    driver: bridge
   rabbitmq:
+    driver: bridge
+  read:
+    driver: bridge
+  register:
+    driver: bridge  
+  score:
+    driver: bridge
+  target:
     driver: bridge
