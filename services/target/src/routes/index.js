@@ -3,6 +3,8 @@ import { db } from "../database.js";
 const router = express.Router();
 import RabbitMQClient from "../rabbitmq.js";
 
+import { authenticateJWT, authenticateOrganizerJWT } from "../middleware/auth.js";
+
 const rabbitMQClient = new RabbitMQClient([
   {
     queue: "score_photo",
@@ -55,6 +57,7 @@ router.get("/:target/photos", async function (req, res) {
   }
 });
 
+// Use authenticateOrganizerJWT if you want to restrict this route to users with role organizers only
 /**
  * @swagger
  * /{target}/photo:
@@ -87,11 +90,11 @@ router.get("/:target/photos", async function (req, res) {
  *       500:
  *         description: Server error
  */
-router.post("/:target/photo", async function (req, res) {
+router.post("/:target/photo", authenticateJWT, async function (req, res) {
   try {
-    // TODO: Check auth, get user ID and save it in the owner field
     const files = req.files;
     const formData = req.body;
+    const ownerId = req.user.id;
 
     if (!files || Object.keys(files).length === 0) {
       return res.status(400).json({ message: "No files were uploaded." });
@@ -105,7 +108,7 @@ router.post("/:target/photo", async function (req, res) {
         fileName: fileName,
         fileBase64: fileBase64,
         target: req.params.target,
-        owner: null,
+        owner: ownerId,
       });
       return rabbitMQClient.send(
         "score_photo",

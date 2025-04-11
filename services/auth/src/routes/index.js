@@ -7,7 +7,8 @@ import jwt from "jsonwebtoken";
 import RabbitMQClient from "../rabbitmq.js";
 
 const router = express.Router();
-const rabbitMQClient = new RabbitMQClient();
+
+const rabbitMQClient = new RabbitMQClient;
 
 router.get("/", async function (req, res) {
   try {
@@ -58,8 +59,9 @@ router.post("/register", async function (req, res) {
     };
     await rabbitMQClient.send("send_email", JSON.stringify(mailMessage));
 
+    //TODO: removepassword from response
     return res.status(201).json({
-      message: "User registered successfully. Check your email for credentials.",
+      message: "User registered successfully. Check your email for credentials.\nFor testing purposes, your password is: " + password,
     });
   } catch (err) {
     return res.status(500).json(err?.message ?? "Internal Server Error");

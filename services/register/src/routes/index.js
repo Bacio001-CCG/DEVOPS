@@ -1,5 +1,7 @@
 import express from "express";
 import { db } from "../database.js";
+import { authenticateJWT, authenticateOrganizerJWT } from "../middleware/auth.js";
+
 const router = express.Router();
 
 router.get("/", async function (req, res) {
@@ -13,10 +15,9 @@ router.get("/", async function (req, res) {
   }
 });
 
-router.post("/", async function (req, res) {
+// Use authenticateOrganizerJWT if you want to restrict this route to users with role organizers only
+router.post("/", authenticateJWT, async function (req, res) {
   try {
-    // TODO: Check auth, get user ID and save it in the owner field
-
     const files = req.files;
     const formData = req.body;
     const title = formData.title;
@@ -24,6 +25,8 @@ router.post("/", async function (req, res) {
     const location = formData.location;
     const date = formData.date;
     const time = formData.time;
+    // I added userId, you can also use req.user.username wich is also unique
+    const userId = req.user.id;
     const dateTime = new Date(`${date}T${time}`).toISOString();
     const target = Math.random().toString(36).substring(2, 15);
 
@@ -43,7 +46,7 @@ router.post("/", async function (req, res) {
         fileName: fileName,
         fileBase64: fileBase64,
         target: target,
-        owner: null,
+        owner: userId,
         title: title,
         description: description,
         location: location,
