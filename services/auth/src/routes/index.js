@@ -20,24 +20,6 @@ router.get("/", async function (req, res) {
   }
 });
 
-
-router.get("/testclock", async function (req, res) {
-  try {    
-    const target = {
-      targetId: 1225635,
-      endTime: new Date(Date.now() + 10000),
-    };
-    await rabbitMQClient.send("start_clock", JSON.stringify(target));
-    
-    const list = [];
-    return res.status(200).json(list);
-  } catch (err) {
-    return res
-      .status(500)
-      .json({ message: err?.message ?? "Internal Server Error" });
-  }
-});
-
 router.post("/register", async function (req, res) {
   try {
     const { email, username, organizer = false } = req.body;

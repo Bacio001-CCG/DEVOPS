@@ -2,7 +2,6 @@ import "dotenv/config";
 import express from "express";
 
 import routes from "./routes/index.js";
-import "./ClockService.js";
 
 const app = express();
 

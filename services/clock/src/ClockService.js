@@ -11,7 +11,19 @@ class ClockService {
     ]);
 
     this.resumeActiveClocks()
-  }  
+  }   
+
+  async handleClockEnd(targetId) {
+    await db.collection("target_timings").updateOne(
+      { targetId },
+      { $set: { isEnded: true } }
+    );
+
+    //use rabbitmq to notify other services about the clock end
+    //await this.rabbitMQClient.send("something", JSON.stringify(data));
+    
+    console.log(`Competition for target ${targetId} has ended.`);
+  }
 
   async resumeActiveClocks() {
     const activeClocks = await db.collection("target_timings").find({ isEnded: false }).toArray();
@@ -40,23 +52,6 @@ class ClockService {
     });
 
     this.startClock(targetId, endTime);
-  }
-
-  async handleClockEnd(targetId) {
-    await db.collection("target_timings").updateOne(
-      { targetId },
-      { $set: { isEnded: true } }
-    );
-
-    //use rabbitmqto notify other services about the clock end
-    const mailMessage = {
-      to: "ajw.berkers@student.avans.nl",
-      subject: "Timer has ended",
-      text: `Timer Has ended:\nid: ${targetId}`,
-    };
-    await this.rabbitMQClient.send("send_email", JSON.stringify(mailMessage));
-    
-    console.log(`Competition for target ${targetId} has ended.`);
   }
 
   startClock(targetId, endTime) {
