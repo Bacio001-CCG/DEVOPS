@@ -15,7 +15,29 @@ router.get("/", async function (req, res) {
 
 router.post("/", async function (req, res) {
   try {
-    return res.status(200).json("Photo graded");
+    const files = req.files;
+    const formData = req.body;
+
+    if (!files || Object.keys(files).length === 0) {
+      return res.status(400).json({ message: "No files were uploaded." });
+    }
+
+    const results = Object.keys(files).map(async (key) => {
+      const file = files[key];
+      const fileBase64 = file.data.toString("base64");
+      const fileName = file.name;
+      await db.collection("photos").insertOne({
+        fileName: fileName,
+        fileBase64: fileBase64,
+        target: Math.random().toString(36).substring(2, 15),
+      });
+    });
+
+    await Promise.all(results);
+    return res.status(200).json({
+      message: "Photos received and saved",
+      formData: formData,
+    });
   } catch (err) {
     return res.status(500).json(err?.message ?? "Internal Server Error");
   }
