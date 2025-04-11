@@ -21,7 +21,7 @@ class Clock {
     
     if (targetClock) {
       await db.collection("target_timings").updateOne(
-        { _id: timing._id },
+        { _id: targetClock._id },
         { $set: { isEnded: true } }
       );
 
