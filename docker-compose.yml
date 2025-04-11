@@ -191,9 +191,9 @@ services:
     image: mongo:latest
     ports:
       - "${MONGO_AUTH_PORT}:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_AUTH_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_AUTH_ROOT_PASSWORD}
+    # environment:
+    #   - MONGO_INITDB_ROOT_USERNAME=${MONGO_AUTH_ROOT_USERNAME}
+    #   - MONGO_INITDB_ROOT_PASSWORD=${MONGO_AUTH_ROOT_PASSWORD}
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -210,9 +210,9 @@ services:
     image: mongo:latest
     ports:
       - "${MONGO_MAIL_PORT}:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_MAIL_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_MAIL_ROOT_PASSWORD}
+    # environment:
+    #   - MONGO_INITDB_ROOT_USERNAME=${MONGO_MAIL_ROOT_USERNAME}
+    #   - MONGO_INITDB_ROOT_PASSWORD=${MONGO_MAIL_ROOT_PASSWORD}
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -229,9 +229,9 @@ services:
     image: mongo:latest
     ports:
       - "${MONGO_CLOCK_PORT}:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_CLOCK_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_CLOCK_ROOT_PASSWORD}
+    # environment:
+    #   - MONGO_INITDB_ROOT_USERNAME=${MONGO_CLOCK_ROOT_USERNAME}
+    #   - MONGO_INITDB_ROOT_PASSWORD=${MONGO_CLOCK_ROOT_PASSWORD}
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -248,9 +248,9 @@ services:
     image: mongo:latest
     ports:
       - "${MONGO_READ_PORT}:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_READ_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_READ_ROOT_PASSWORD}
+    # environment:
+    #   - MONGO_INITDB_ROOT_USERNAME=${MONGO_READ_ROOT_USERNAME}
+    #   - MONGO_INITDB_ROOT_PASSWORD=${MONGO_READ_ROOT_PASSWORD}
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -267,9 +267,9 @@ services:
     image: mongo:latest
     ports:
       - "${MONGO_REGISTER_PORT}:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_REGISTER_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_REGISTER_ROOT_PASSWORD}
+    # environment:
+    #   - MONGO_INITDB_ROOT_USERNAME=${MONGO_REGISTER_ROOT_USERNAME}
+    #   - MONGO_INITDB_ROOT_PASSWORD=${MONGO_REGISTER_ROOT_PASSWORD}
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -287,9 +287,9 @@ services:
     image: mongo:latest
     ports:
       - "${MONGO_SCORE_PORT}:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_SCORE_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_SCORE_ROOT_PASSWORD}
+    # environment:
+    #   - MONGO_INITDB_ROOT_USERNAME=${MONGO_SCORE_ROOT_USERNAME}
+    #   - MONGO_INITDB_ROOT_PASSWORD=${MONGO_SCORE_ROOT_PASSWORD}
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -306,9 +306,9 @@ services:
     image: mongo:latest
     ports:
       - "${MONGO_TARGET_PORT}:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_TARGET_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_TARGET_ROOT_PASSWORD}
+    # environment:
+    #   - MONGO_INITDB_ROOT_USERNAME=${MONGO_TARGET_ROOT_USERNAME}
+    #   - MONGO_INITDB_ROOT_PASSWORD=${MONGO_TARGET_ROOT_PASSWORD}
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s

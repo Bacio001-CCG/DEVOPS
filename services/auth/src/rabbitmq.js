@@ -5,6 +5,8 @@ class RabbitMQClient {
   connection = null;
   channel = null;
   queues = [];
+  responseHandlers = new Map();
+  replyQueueName = null;
 
   /**
    * Creates a new RabbitMQClient instance
@@ -25,25 +27,65 @@ class RabbitMQClient {
       this.channel = await this.connection.createChannel();
       console.log("Channel created successfully");
 
+      // Create exclusive reply queue for this client instance
+      const { queue } = await this.channel.assertQueue("", {
+        exclusive: true,
+        autoDelete: true,
+      });
+      this.replyQueueName = queue;
+      console.log("Created exclusive reply queue:", this.replyQueueName);
+
+      // Setup consumer for reply queue
+      this.channel.consume(
+        this.replyQueueName,
+        (msg) => {
+          if (msg !== null) {
+            this.handleReplyMessage(msg);
+          }
+        },
+        { noAck: true }
+      );
+      console.log("Set up consumer for reply queue");
+
       for (const queue of this.queues) {
         await this.channel.assertQueue(queue.queue, { durable: false });
         console.log("Queue asserted:", queue.queue);
 
-        this.channel.consume(
-          queue.queue,
-          (msg) => {
-            if (msg !== null) {
-              queue.function(msg);
-            }
-          },
-          { noAck: true }
-        );
+        if (queue.consume)
+          this.channel.consume(
+            queue.queue,
+            (msg) => {
+              if (msg !== null) {
+                queue.function(msg);
+              }
+            },
+            { noAck: true }
+          );
         console.log("Consumer set up for queue:", queue.queue);
       }
 
       console.log("RabbitMQ setup complete");
     } catch (error) {
       console.error("RabbitMQ initialization error:", error);
+    }
+  }
+
+  // Add this method to handle reply messages
+  handleReplyMessage(msg) {
+    const correlationId = msg.properties.correlationId;
+
+    if (correlationId && this.responseHandlers.has(correlationId)) {
+      const handler = this.responseHandlers.get(correlationId);
+      const content = msg.content.toString();
+
+      try {
+        handler.resolve(content);
+      } catch (error) {
+        console.error("Error handling reply:", error);
+      }
+
+      // Clean up the handler
+      this.responseHandlers.delete(correlationId);
     }
   }
 
@@ -59,6 +101,58 @@ class RabbitMQClient {
     } catch (error) {
       console.error("Error sending message:", error);
     }
+  }
+
+  async request(queue, message, timeout = 30000) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        if (!this.channel) {
+          return reject(new Error("Channel not initialized"));
+        }
+
+        // Generate unique correlation ID for this request
+        const correlationId = Math.random().toString(16).slice(2);
+
+        // Convert message to string if it's not already
+        const msgStr =
+          typeof message === "string" ? message : JSON.stringify(message);
+
+        // Store the handlers with a timeout
+        const timeoutId = setTimeout(() => {
+          if (this.responseHandlers.has(correlationId)) {
+            this.responseHandlers.delete(correlationId);
+            reject(
+              new Error(`Request to ${queue} timed out after ${timeout}ms`)
+            );
+          }
+        }, timeout);
+
+        this.responseHandlers.set(correlationId, {
+          resolve: (result) => {
+            clearTimeout(timeoutId);
+            resolve(JSON.parse(result));
+          },
+          timeout: timeoutId,
+        });
+
+        // Make sure the queue exists
+        await this.channel.assertQueue(queue, { durable: false });
+
+        // Send the request with this client's reply queue name
+        this.channel.sendToQueue(queue, Buffer.from(msgStr), {
+          correlationId,
+          replyTo: this.replyQueueName,
+          persistent: true,
+        });
+
+        console.log(
+          ` [x] Sent request to '${queue}' with correlation ID: ${correlationId}`
+        );
+      } catch (error) {
+        console.error("Error sending request:", error);
+        reject(error);
+      }
+    });
   }
 }
 
