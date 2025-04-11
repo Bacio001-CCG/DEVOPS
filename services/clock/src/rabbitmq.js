@@ -12,7 +12,7 @@ class RabbitMQClient {
    * @param {string} queues[].queue - Name of the queue
    * @param {function(import('amqplib').ConsumeMessage): void} queues[].function - Callback function to process messages
    */
-  constructor(queues = []) {
+  constructor(queues) {
     this.queues = queues;
     this.initialize();
   }
