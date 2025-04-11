@@ -8,6 +8,13 @@ class RabbitMQClient {
   responseHandlers = new Map();
   replyQueueName = null;
 
+
+  /**
+   * Creates a new RabbitMQClient instance
+   * @param {Array<{queue: string, function: function(import('amqplib').ConsumeMessage): void}>} queues - Array of queue configurations
+   * @param {string} queues[].queue - Name of the queue
+   * @param {function(import('amqplib').ConsumeMessage): void} queues[].function - Callback function to process messages
+   */
   constructor(queues) {
     this.queues = queues;
     this.initialize();
@@ -148,6 +155,7 @@ class RabbitMQClient {
       }
     });
   }
+
 }
 
 export default RabbitMQClient;
