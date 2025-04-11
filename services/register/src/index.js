@@ -22,7 +22,10 @@ const rabbitMQClient = new RabbitMQClient([
         const { target } = JSON.parse(msg.content.toString());
 
         // Query the database
-        const result = await db.collection("photos").find({ target }).toArray();
+        const result = await db
+          .collection("registration")
+          .find({ target })
+          .toArray();
 
         // Check if replyTo exists in message properties
         if (replyTo) {

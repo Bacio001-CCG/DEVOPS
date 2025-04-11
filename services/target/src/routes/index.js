@@ -89,6 +89,7 @@ router.get("/:target/photos", async function (req, res) {
  */
 router.post("/:target/photo", async function (req, res) {
   try {
+    // TODO: Check auth, get user ID and save it in the owner field
     const files = req.files;
     const formData = req.body;
 
@@ -104,6 +105,7 @@ router.post("/:target/photo", async function (req, res) {
         fileName: fileName,
         fileBase64: fileBase64,
         target: req.params.target,
+        owner: null,
       });
       return rabbitMQClient.send(
         "score_photo",

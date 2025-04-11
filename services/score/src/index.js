@@ -18,6 +18,7 @@ async function calculateScore(msg) {
     JSON.stringify({ target })
   );
 
+  console.log(target);
   const base64Target = response.fileBase64;
   const base64Photo = photo;
 

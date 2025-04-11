@@ -135,7 +135,7 @@ class RabbitMQClient {
         // Send the request with this client's reply queue name
         this.channel.sendToQueue(queue, Buffer.from(msgStr), {
           correlationId,
-          replyTo: this.replyQueueName, // Use the client's reply queue
+          replyTo: this.replyQueueName,
           persistent: true,
         });
 
