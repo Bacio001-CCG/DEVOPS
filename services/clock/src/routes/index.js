@@ -1,6 +1,5 @@
 import express from "express";
 import { db } from "../database.js";
-import ClockService from "../clockService.js";
 
 const router = express.Router();
 

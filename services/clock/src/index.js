@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import "./clock.js"
 
 import routes from "./routes/index.js";
 

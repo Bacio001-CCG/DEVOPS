@@ -1,7 +1,7 @@
 import RabbitMQClient  from './rabbitmq.js';
 import { db } from "./database.js";
 
-class ClockService {
+class Clock {
   constructor() {    
     this.rabbitMQClient = new RabbitMQClient([
       {
@@ -14,15 +14,24 @@ class ClockService {
   }   
 
   async handleClockEnd(targetId) {
-    await db.collection("target_timings").updateOne(
-      { targetId },
-      { $set: { isEnded: true } }
-    );
-
-    //use rabbitmq to notify other services about the clock end
-    //await this.rabbitMQClient.send("something", JSON.stringify(data));
+    const targetClock = await db.collection("target_timings").findOne({
+      targetId,
+      isEnded: false
+    });
     
-    console.log(`Competition for target ${targetId} has ended.`);
+    if (targetClock) {
+      await db.collection("target_timings").updateOne(
+        { _id: timing._id },
+        { $set: { isEnded: true } }
+      );
+
+      //use rabbitmq to notify other services about the clock end
+      //await this.rabbitMQClient.send("something", JSON.stringify(data));
+    
+      console.log(`Ended clock for target ${targetId} with _id ${timing._id}`);
+    } else {
+      console.log(`No active clock found for target ${targetId}`);
+    }
   }
 
   async resumeActiveClocks() {
@@ -66,4 +75,4 @@ class ClockService {
   }
 }
 
-export default new ClockService();
+export default new Clock();
