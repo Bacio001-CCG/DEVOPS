@@ -10,11 +10,12 @@
         "test": "jest"
     },
     "dependencies": {
+        "amqplib": "^0.10.7",
         "axios": "^1.7.9",
         "dotenv": "^16.4.7",
         "express": "^4.21.2",
-        "mongodb": "^6.13.0",
-        "jest": "^29.7.0"
+        "jest": "^29.7.0",
+        "mongodb": "^6.13.0"
     },
     "devDependencies": {
         "nodemon": "^3.1.9"
