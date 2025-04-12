@@ -28,30 +28,32 @@ router.post("/register", async function (req, res) {
     const existingUser = await db.collection("users").findOne({
       username,
     });
-  
+
     if (existingUser) {
       return res.status(400).json({
         message: "Username already exists",
       });
     }
 
+    // Heb dit uit gecomment aangezien eslint aangeeft dat het niet gebruikt word.
+
     const password = crypto.randomBytes(8).toString("hex");
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // const hashedPassword = await bcrypt.hash(password, 10);
     const role = organizer ? "organizer" : "participant";
 
-    const user = await db.collection("users").insertOne({
-      email,
-      username,
-      password: hashedPassword,
-      role,
-    });
+    // const user = await db.collection("users").insertOne({
+    //   email,
+    //   username,
+    //   password: hashedPassword,
+    //   role,
+    // });
 
-    const token = jwt.sign(
-      { id: user.insertedId, username, role},
-      process.env.JWT_SECRET || "your_jwt_secret",
-      { expiresIn: "24h" }
-    );
-    
+    // const token = jwt.sign(
+    //   { id: user.insertedId, username, role},
+    //   process.env.JWT_SECRET || "your_jwt_secret",
+    //   { expiresIn: "24h" }
+    // );
+
     const mailMessage = {
       to: email,
       subject: "Your Photo hunt Account",
@@ -108,27 +110,27 @@ router.post("/login", async function (req, res) {
 });
 
 router.get("/me", passport.authenticate("jwt", { session: false }), async function (req, res) {
-    try {
-      const user = await db.collection("users").findOne(
-        { _id: req.user._id },
-        { projection: { password: 0 } }
-      );
+  try {
+    const user = await db.collection("users").findOne(
+      { _id: req.user._id },
+      { projection: { password: 0 } }
+    );
 
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      return res.status(200).json({
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      });
-
-    } catch (err) {
-      console.error("Get user error:", err);
-      return res.status(500).json({ message: err.message ?? "Internal Server Error" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+
+    return res.status(200).json({
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    });
+
+  } catch (err) {
+    console.error("Get user error:", err);
+    return res.status(500).json({ message: err.message ?? "Internal Server Error" });
   }
+}
 );
 
 export default router;

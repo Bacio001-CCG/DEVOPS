@@ -7,7 +7,9 @@
     "scripts": {
         "prod": "node src/index.js",
         "dev": "npx nodemon",
-        "test": "jest"
+        "test": "jest",
+        "lint": "eslint . --ext .js --ext .mjs",
+        "lint-fix": "eslint --fix . --ext .js --ext .mjs"
     },
     "dependencies": {
         "amqplib": "^0.10.7",
@@ -19,6 +21,8 @@
         "nodemailer": "^6.10.0"
     },
     "devDependencies": {
+        "eslint": "^9.24.0",
+        "globals": "^16.0.0",
         "nodemon": "^3.1.9"
     }
 }

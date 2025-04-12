@@ -3,7 +3,7 @@ import { db } from "../database.js";
 const router = express.Router();
 import RabbitMQClient from "../rabbitmq.js";
 
-import { authenticateJWT, authenticateOrganizerJWT } from "../middleware/auth.js";
+import { authenticateJWT } from "../middleware/auth.js";
 
 const rabbitMQClient = new RabbitMQClient([
   {

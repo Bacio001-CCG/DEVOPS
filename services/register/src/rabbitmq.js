@@ -98,7 +98,7 @@ class RabbitMQClient {
   }
 
   async request(queue, message, timeout = 30000) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       try {
         if (!this.channel) {
           return reject(new Error("Channel not initialized"));
@@ -130,7 +130,7 @@ class RabbitMQClient {
         });
 
         // Make sure the queue exists
-        await this.channel.assertQueue(queue, { durable: false });
+        this.channel.assertQueue(queue, { durable: false });
 
         // Send the request with this client's reply queue name
         this.channel.sendToQueue(queue, Buffer.from(msgStr), {
