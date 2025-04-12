@@ -66,6 +66,56 @@ const rabbitMQClient = new RabbitMQClient([
       }
     },
   },
+  {
+    queue: "end_target",
+    consume: true,
+    function: async (msg) => {
+      try {             
+      const targetId = JSON.parse(msg.content.toString()); 
+
+        if (!targetId) {
+          console.warn("No targetId provided in message");
+          return;
+        }
+
+        console.log("send mq");
+        await rabbitMQClient.send(
+          "get_highest_scorer",
+          JSON.stringify(targetId)
+        );
+
+        await db.collection("registration").updateMany(
+          { target: targetId },
+          { $set: { isEnded: true } }
+        );
+      } catch (err) {
+        console.error("Error handling target end", err);
+      }
+    },
+  },  
+  {
+    queue: "set_winner",
+    consume: true,
+    function: async (msg) => {
+      try {              
+        const { targetId, highestScorer, score} = JSON.parse(msg.content.toString()); 
+
+        if (!targetId) {
+          console.warn("No targetId provided in message");
+          return;
+        }
+
+        await db.collection("registration").updateMany(
+          { target: targetId },
+          { $set: { winner: highestScorer, score} }
+        );
+
+        console.log(`Target ${targetId} ended with winner: ${highestScorer} and score: ${score}`);
+      } catch (err) {
+        console.error("Error handling target end", err);
+      }
+    },
+  },
 ]);
 
 const app = express();

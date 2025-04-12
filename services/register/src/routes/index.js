@@ -1,8 +1,11 @@
 import express from "express";
 import { db } from "../database.js";
 import { authenticateJWT } from "../middleware/auth.js";
+import RabbitMQClient from "../rabbitmq.js";
 
 const router = express.Router();
+
+const rabbitMQClient = new RabbitMQClient([]);
 
 router.get("/", async function (req, res) {
   try {
@@ -25,10 +28,12 @@ router.post("/", authenticateJWT, async function (req, res) {
     const location = formData.location;
     const date = formData.date;
     const time = formData.time;
-    // I added userId, you can also use req.user.username wich is also unique
-    const userId = req.user.id;
-    const dateTime = new Date(`${date}T${time}`).toISOString();
+    const username = req.user.username;
     const target = Math.random().toString(36).substring(2, 15);
+
+    const originalDate = new Date(`${date}T${time}`);
+    const adjustedDate = new Date(originalDate.getTime() - 2 * 60 * 60 * 1000); // subtract 2 hours
+    const dateTime = adjustedDate.toISOString();
 
     if (!files || Object.keys(files).length === 0) {
       return res.status(400).json({ message: "No files were uploaded." });
@@ -46,19 +51,30 @@ router.post("/", authenticateJWT, async function (req, res) {
         fileName: fileName,
         fileBase64: fileBase64,
         target: target,
-        owner: userId,
+        owner: username,
         title: title,
         description: description,
         location: location,
         endTime: dateTime,
-        startTime: new Date().toISOString(),
+        startTime: new Date().toISOString(),        
+        winner: null,
+        isEnded: false,
       });
     });
 
     await Promise.all(results);
+
+    await rabbitMQClient.send(
+      "start_clock",
+      JSON.stringify({
+        targetId: target,
+        endTime: dateTime,
+      })
+    );
+
     return res.status(200).json({
-      message: "Photos received and saved",
-      formData: formData,
+      message: "Photos received and saved, TargetId: " + target,
+      formData: formData,      
     });
   } catch (err) {
     return res.status(500).json(err?.message ?? "Internal Server Error");

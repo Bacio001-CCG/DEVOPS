@@ -1,5 +1,6 @@
 import express from "express";
 import { db } from "../database.js";
+import { ObjectId } from "mongodb";
 const router = express.Router();
 import RabbitMQClient from "../rabbitmq.js";
 
@@ -9,6 +10,48 @@ const rabbitMQClient = new RabbitMQClient([
   {
     queue: "score_photo",
     consume: false,
+  },
+  {
+    queue: "score_result",
+    consume: true,
+    function: async (msg) => {
+      try {
+        const { score, photoId } = JSON.parse(msg.content.toString());
+        await db.collection("photos").updateOne(
+          { _id: new ObjectId(photoId) },
+          { $set: { score } }
+        );
+        console.log(`Score ${score} saved for photo ${photoId}`);
+      } catch (error) {
+        console.error("Error saving score:", error);
+      }
+    },
+  },
+  {
+    queue: "get_highest_scorer",
+    consume: true,
+    function: async (msg) => {
+      try {
+        const targetId = JSON.parse(msg.content.toString());
+        const highestScorePhoto = await db
+          .collection("photos")
+          .find({ target: targetId })
+          .sort({ score: -1 })
+          .limit(1)
+          .toArray();
+
+        const highestScorer = highestScorePhoto[0]?.owner || "no one";
+        const score = highestScorePhoto[0]?.score || 0;
+
+        await rabbitMQClient.send(
+          "set_winner",
+          JSON.stringify({ targetId, highestScorer, score }),
+        );
+        console.log(`Highest scorer for target ${targetId}: ${highestScorer}, with score: ${score}`);
+      } catch (error) {
+        console.error("Error getting highest scorer:", error);
+      }
+    },
   },
 ]);
 
@@ -94,7 +137,7 @@ router.post("/:target/photo", authenticateJWT, async function (req, res) {
   try {
     const files = req.files;
     const formData = req.body;
-    const ownerId = req.user.id;
+    const username = req.user.username;
 
     if (!files || Object.keys(files).length === 0) {
       return res.status(400).json({ message: "No files were uploaded." });
@@ -104,17 +147,20 @@ router.post("/:target/photo", authenticateJWT, async function (req, res) {
       const file = files[key];
       const fileBase64 = file.data.toString("base64");
       const fileName = file.name;
-      await db.collection("photos").insertOne({
+      const photo = await db.collection("photos").insertOne({
         fileName: fileName,
         fileBase64: fileBase64,
         target: req.params.target,
-        owner: ownerId,
+        owner: username,
+        score: null,
       });
+      const photoId = photo.insertedId.toString();
       return rabbitMQClient.send(
         "score_photo",
         JSON.stringify({
           target: req.params.target,
           photo: fileBase64,
+          photoId,
         })
       );
     });
