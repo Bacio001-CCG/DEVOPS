@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         node-version: [23.x]
-        folder: ["services/target"]
+        folder: ["services/target", "services/score", "services/register", "services/read", "services/clock", "services/auth"  ]
 
     steps:
     - uses: actions/checkout@v4

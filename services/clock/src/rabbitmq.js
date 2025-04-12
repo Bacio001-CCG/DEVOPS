@@ -8,13 +8,6 @@ class RabbitMQClient {
   responseHandlers = new Map();
   replyQueueName = null;
 
-
-  /**
-   * Creates a new RabbitMQClient instance
-   * @param {Array<{queue: string, function: function(import('amqplib').ConsumeMessage): void}>} queues - Array of queue configurations
-   * @param {string} queues[].queue - Name of the queue
-   * @param {function(import('amqplib').ConsumeMessage): void} queues[].function - Callback function to process messages
-   */
   constructor(queues) {
     this.queues = queues;
     this.initialize();
@@ -105,7 +98,7 @@ class RabbitMQClient {
   }
 
   async request(queue, message, timeout = 30000) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       try {
         if (!this.channel) {
           return reject(new Error("Channel not initialized"));
@@ -137,7 +130,7 @@ class RabbitMQClient {
         });
 
         // Make sure the queue exists
-        await this.channel.assertQueue(queue, { durable: false });
+        this.channel.assertQueue(queue, { durable: false });
 
         // Send the request with this client's reply queue name
         this.channel.sendToQueue(queue, Buffer.from(msgStr), {
@@ -155,7 +148,6 @@ class RabbitMQClient {
       }
     });
   }
-
 }
 
 export default RabbitMQClient;

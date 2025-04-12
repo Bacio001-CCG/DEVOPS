@@ -20,7 +20,7 @@ app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
 });
 
-const rabbitMQClient = new RabbitMQClient([
+new RabbitMQClient([
   {
     queue: "send_email",
     function: function (msg) {
@@ -44,9 +44,9 @@ const sendEmail = async (to, subject, text) => {
   } catch (error) {
     console.error("Error sending email:", error);
   }
-}; 
+};
 
-app.post("/", (req, res) => {
+app.post("/", () => {
   const mailOptions = {
     from: "kartonkoekje@gmail.com",
     to: "ajw.berkers@student.avans.nl",
