@@ -39,6 +39,16 @@ app.use(
 app.use("/", routes);
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 
+
+// Health check for gateway
+app.use((req, res, next) => {
+  if (req.method === "HEAD") {
+    res.status(200).end();
+  } else {
+    next();
+  }
+});
+
 app.listen(5006, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
 });
