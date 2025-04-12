@@ -1,39 +1,46 @@
 import "dotenv/config";
 import express from "express";
-import swaggerUI from "swagger-ui-express";
-import swaggerJsDoc from "swagger-jsdoc";
-
-import routes from "./routes/index.js";
+import { createProxyMiddleware } from "http-proxy-middleware";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import routes from "../routes.config.js";
+import { authenticateJWT } from "./middleware/auth.js";
 
 const app = express();
 
-const swaggerOptions = {
-  swaggerDefinition: {
-    myapi: "0.0.1",
-    info: {
-      title: "Devops API",
-      version: "0.0.1",
-      description: "API documentation",
-    },
-    servers: [
-      {
-        url: "http://localhost:" + process.env.PORT,
-      },
-    ],
-  },
-  apis: ["./src/routes/*.js"],
-};
+// Security, CORS and logging middleware
+app.use(helmet());
+app.use(cors());
+app.use(morgan("combined"));
 
-const swaggerDocs = swaggerJsDoc(swaggerOptions);
+routes.forEach((route) => {
+  console.log("Setting up proxy for", route.path);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+  if (route.auth) {
+    app.use(route.path, (req, res, next) => {
+      // Here you have access to next()
+      authenticateJWT(req, res, () => {
+        console.log("Authentication successful");
+        next(); // Continue to proxy
+      });
+    });
+  }
 
-app.use("/", routes);
-app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
+  app.use(
+    route.path,
+    createProxyMiddleware({
+      target: route.target,
+      changeOrigin: true,
+      logLevel: "debug",
+    })
+  );
+});
 
-app.listen(5008, () => {
-  console.log(`Server is running on port ${process.env.PORT}`);
+const PORT = process.env.PORT || 5008;
+
+app.listen(PORT, () => {
+  console.log(`API Gateway is running on port ${PORT}`);
 });
 
 export default app;
