@@ -41,22 +41,24 @@ class RabbitMQClient {
       );
       console.log("Set up consumer for reply queue");
 
-      for (const queue of this.queues) {
-        await this.channel.assertQueue(queue.queue, { durable: false });
-        console.log("Queue asserted:", queue.queue);
-
-        if (queue.consume)
-          this.channel.consume(
-            queue.queue,
-            (msg) => {
-              if (msg !== null) {
-                queue.function(msg);
-              }
-            },
-            { noAck: true }
-          );
-        console.log("Consumer set up for queue:", queue.queue);
-      }
+      if (this.queues) {
+        for (const queue of this.queues) {
+          await this.channel.assertQueue(queue.queue, { durable: false });
+          console.log("Queue asserted:", queue.queue);
+  
+          if (queue.consume)
+            this.channel.consume(
+              queue.queue,
+              (msg) => {
+                if (msg !== null) {
+                  queue.function(msg);
+                }
+              },
+              { noAck: true }
+            );
+          console.log("Consumer set up for queue:", queue.queue);
+        }
+      }      
 
       console.log("RabbitMQ setup complete");
     } catch (error) {

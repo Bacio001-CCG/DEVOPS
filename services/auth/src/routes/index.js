@@ -21,6 +21,25 @@ router.get("/", async function (req, res) {
   }
 });
 
+router.get("/sendTestEmail", async function (req, res) {
+  try {
+    const mailMessage = {
+      to: "ajw.berkers@student.avans.nl",
+      subject: "test mail",
+      text: `Welcome to Photo hunt!\n\nYour credentials:\nUsername:`,
+    };
+    await rabbitMQClient.send("send_email", JSON.stringify(mailMessage));
+
+    return res.status(200).json({
+      message: "email sent",
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: err?.message ?? "Internal Server Error" });
+  }
+});
+
 router.post("/register", async function (req, res) {
   try {
     const { email, username, organizer = false } = req.body;
@@ -35,24 +54,22 @@ router.post("/register", async function (req, res) {
       });
     }
 
-    // Heb dit uit gecomment aangezien eslint aangeeft dat het niet gebruikt word.
-
     const password = crypto.randomBytes(8).toString("hex");
-    // const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
     const role = organizer ? "organizer" : "participant";
 
-    // const user = await db.collection("users").insertOne({
-    //   email,
-    //   username,
-    //   password: hashedPassword,
-    //   role,
-    // });
+    await db.collection("users").insertOne({
+      email,
+      username,
+      password: hashedPassword,
+      role,
+    });
 
-    // const token = jwt.sign(
-    //   { id: user.insertedId, username, role},
-    //   process.env.JWT_SECRET || "your_jwt_secret",
-    //   { expiresIn: "24h" }
-    // );
+    const token = jwt.sign(
+      { id: user.insertedId, username, role},
+      process.env.JWT_SECRET || "your_jwt_secret",
+      { expiresIn: "24h" }
+    );
 
     const mailMessage = {
       to: email,
@@ -61,9 +78,8 @@ router.post("/register", async function (req, res) {
     };
     await rabbitMQClient.send("send_email", JSON.stringify(mailMessage));
 
-    //TODO: removepassword from response
     return res.status(201).json({
-      message: "User registered successfully. Check your email for credentials.\nFor testing purposes, your password is: " + password,
+      message: "User registered successfully. Check your email for credentials.\nHere is your first bearer token: " + token,
     });
   } catch (err) {
     return res.status(500).json(err?.message ?? "Internal Server Error");
