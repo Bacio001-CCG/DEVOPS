@@ -6,35 +6,60 @@ import helmet from "helmet";
 import morgan from "morgan";
 import routes from "../routes.config.js";
 import { authenticateJWT } from "./middleware/auth.js";
+import CircuitBreaker from "opossum";
+import axios from "axios";
 
 const app = express();
 
-// Security, CORS and logging middleware
 app.use(helmet());
 app.use(cors());
 app.use(morgan("combined"));
 
+const circuitBreakerOptions = {
+  timeout: 5000,
+  errorThresholdPercentage: 50,
+  resetTimeout: 10000,
+};
+
+const checkServiceHealth = (route) => {
+  return axios.head(route.target, { timeout: 3000 });
+};
+
 routes.forEach((route) => {
   console.log("Setting up proxy for", route.path);
 
+  const breaker = new CircuitBreaker(() => checkServiceHealth(route), circuitBreakerOptions);
+
   if (route.auth) {
     app.use(route.path, (req, res, next) => {
-      // Here you have access to next()
-      authenticateJWT(req, res, () => {
-        console.log("Authentication successful");
-        next(); // Continue to proxy
-      });
+      authenticateJWT(req, res, () => next());
     });
   }
 
-  app.use(
-    route.path,
-    createProxyMiddleware({
-      target: route.target,
-      changeOrigin: true,
-      logLevel: "debug",
-    })
-  );
+  app.use(route.path, async (req, res, next) => {
+    try {
+      await breaker.fire();
+      createProxyMiddleware({
+        target: route.target,
+        changeOrigin: true,
+        logLevel: "debug",
+        timeout: 10000,
+        proxyTimeout: 10000,
+        onError(err, req, res) {
+          console.error("Proxy encountered an error:", err.message);
+          if (!res.headersSent) {
+            res.writeHead(503, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ message: "Service unavailable. Please try again later." }));
+          }
+        }
+      })(req, res, next);
+    } catch (err) {
+      if (!res.headersSent) {
+        console.error("Circuit breaker blocked request:", err.message);
+        res.status(503).json({ message: "Service unavailable. Please try again later." });
+      }
+    }
+  });
 });
 
 const PORT = process.env.PORT || 5008;
