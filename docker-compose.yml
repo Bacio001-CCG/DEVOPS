@@ -147,8 +147,10 @@ services:
       - target
       - rabbitmq
     depends_on:
-      - target-mongodb
-      - rabbitmq   
+      target-mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
   
   auth:
     build:
