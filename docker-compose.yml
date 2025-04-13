@@ -210,7 +210,7 @@ services:
     restart: always
     networks:
       - rabbitmq
-      
+
   grafana:
       image: grafana/grafana:11.5.2
       ports:
@@ -272,7 +272,6 @@ services:
       - auth
       - rabbitmq
       - gateway
-    attach: false
 
 # ----------------------------------- DATABASE -----------------------------------
 
