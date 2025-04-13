@@ -214,7 +214,7 @@ services:
   grafana:
       image: grafana/grafana:11.5.2
       ports:
-        - "${GRAFANA_PORT}:3000"
+        - "${GRAFANA_PORT:-5000}:3000"
       environment:
         - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
         - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
@@ -241,7 +241,7 @@ services:
   prometheus:
     image: prom/prometheus:v3.2.1
     ports:
-      - "${PROMETHEUS_PORT}:9090"
+      - "${PROMETHEUS_PORT:-9090}:9090"
     volumes:
       - ./prometheus:/etc/prometheus
       - prometheus:/prometheus
