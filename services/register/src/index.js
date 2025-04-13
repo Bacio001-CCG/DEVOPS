@@ -110,6 +110,25 @@ const rabbitMQClient = new RabbitMQClient([
           { $set: { winner: highestScorer, score} }
         );
 
+        const registration = await db.collection("registration").findOne({ target: targetId });
+
+        if (!registration || !registration.ownerEmail) {
+          console.warn("Owner email not found for target", targetId);
+          return;
+        }
+
+        const userEmail = registration.ownerEmail;
+        const title = registration.title || "your target";
+        
+        await rabbitMQClient.send(
+          "send_email",
+          JSON.stringify({
+            to: userEmail,
+            subject: `Winner selected for target "${title}"`,
+            text: `The winner of "${title}" is ${highestScorer} with a score of ${score}!`,
+          })
+        );
+
         console.log(`Target ${targetId} ended with winner: ${highestScorer} and score: ${score}`);
       } catch (err) {
         console.error("Error handling target end", err);

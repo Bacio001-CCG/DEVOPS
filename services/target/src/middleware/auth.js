@@ -15,7 +15,8 @@ export const authenticateJWT = (req, res, next) => {
     req.user = {
       id: decoded.id,
       username: decoded.username,
-      role: decoded.role,
+      role: decoded.role,      
+      email: decoded.email,
     };
 
     next();
@@ -44,6 +45,7 @@ export const authenticateOrganizerJWT = (req, res, next) => {
         id: decoded.id,
         username: decoded.username,
         role: decoded.role,
+        email: decoded.email,
       };
   
       if (req.user.role !== "organizer") {

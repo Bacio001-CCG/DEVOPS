@@ -11,11 +11,12 @@ export const authenticateJWT = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+    console.log("Decoded JWT:", decoded.email); // Debugging line
     req.user = {
       id: decoded.id,
       username: decoded.username,
       role: decoded.role,
+      email: decoded.email,
     };
 
     next();
@@ -39,11 +40,11 @@ export const authenticateOrganizerJWT = (req, res, next) => {
   
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
       req.user = {
         id: decoded.id,
         username: decoded.username,
         role: decoded.role,
+        email: decoded.email,
       };
   
       if (req.user.role !== "organizer") {

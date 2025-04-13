@@ -25,45 +25,48 @@ router.post("/register", async function (req, res) {
   try {
     const { email, username, organizer = false } = req.body;
 
-    const existingUser = await db.collection("users").findOne({
-      username,
-    });
+    if (!email || !username) {
+      return res.status(400).json({ message: "Email and username are required" });
+    }
 
+    const existingUser = await db.collection("users").findOne({ username });
     if (existingUser) {
-      return res.status(400).json({
-        message: "Username already exists",
-      });
+      return res.status(400).json({ message: "Username already exists" });
     }
 
     const password = crypto.randomBytes(8).toString("hex");
     const hashedPassword = await bcrypt.hash(password, 10);
     const role = organizer ? "organizer" : "participant";
 
-    const user = await db.collection("users").insertOne({
+    const userResult = await db.collection("users").insertOne({
       email,
       username,
       password: hashedPassword,
       role,
     });
 
+    const userId = userResult.insertedId;
+
     const token = jwt.sign(
-      { id: user.insertedId, username, role},
+      { id: userId, username, role, email },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
 
     const mailMessage = {
       to: email,
-      subject: "Your Photo hunt Account",
-      text: `Welcome to Photo hunt!\n\nYour credentials:\nUsername: ${username}\nPassword: ${password}\nRole: ${role}`,
+      subject: "Your Photo Hunt Account",
+      text: `Welcome to Photo Hunt!\n\nYour credentials:\nUsername: ${username}\nPassword: ${password}\nRole: ${role}`,
     };
     await rabbitMQClient.send("send_email", JSON.stringify(mailMessage));
 
     return res.status(201).json({
-      message: "User registered successfully. Check your email for credentials.\nHere is your first bearer token: " + token,
+      message: "User registered successfully. Check your email for credentials.",
+      token,
     });
   } catch (err) {
-    return res.status(500).json(err?.message ?? "Internal Server Error");
+    console.error("Register error:", err);
+    return res.status(500).json({ message: err?.message ?? "Internal Server Error" });
   }
 });
 
@@ -86,8 +89,8 @@ router.post("/login", async function (req, res) {
     }
 
     const token = jwt.sign(
-      { id: user._id, username: user.username, role: user.role },
-      process.env.JWT_SECRET || "your_jwt_secret",
+      { id: user._id.toString(), username: user.username, role: user.role, email: user.email },
+      process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
 
@@ -98,11 +101,12 @@ router.post("/login", async function (req, res) {
         id: user._id,
         username: user.username,
         role: user.role,
+        email: user.email,
       },
     });
   } catch (err) {
     console.error("Login error:", err);
-    return res.status(500).json({ message: err.message ?? "Internal Server Error" });
+    return res.status(500).json({ message: err?.message ?? "Internal Server Error" });
   }
 });
 

@@ -29,7 +29,9 @@ router.post("/", authenticateJWT, async function (req, res) {
     const location = formData.location;
     const date = formData.date;
     const time = formData.time;
-    const username = req.user.username;
+    const username = req.user.username;    
+    console.log("email:", req.user.email);
+    const email = req.user.email;
     const target = Math.random().toString(36).substring(2, 15);
 
     const originalDate = new Date(`${date}T${time}`);
@@ -53,6 +55,7 @@ router.post("/", authenticateJWT, async function (req, res) {
         fileBase64: fileBase64,
         target: target,
         owner: username,
+        ownerEmail: email,
         title: title,
         description: description,
         location: location,
