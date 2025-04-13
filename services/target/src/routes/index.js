@@ -53,6 +53,59 @@ const rabbitMQClient = new RabbitMQClient([
       }
     },
   },
+  {
+    queue: "get_photos_by_target",
+    consume: true,
+    function: async (msg) => {
+      const targetId = msg.content.toString();
+      const photos = await db.collection("photos").find({ target: targetId }).toArray();
+      const replyTo = msg.properties.replyTo;
+      const correlationId = msg.properties.correlationId;
+  
+      rabbitMQClient.channel.sendToQueue(
+        replyTo,
+        Buffer.from(JSON.stringify(photos)),
+        { correlationId }
+      );
+    },
+  },
+  {
+    queue: "delete_photos_by_target",
+    consume: true,
+    function: async (msg) => {
+      const targetId = msg.content.toString();
+      await db.collection("photos").deleteMany({ target: targetId });
+      console.log(`Deleted all photos for target: ${targetId}`);
+    },
+  },
+  {
+    queue: "get_photo_by_id",
+    consume: true,
+    function: async (msg) => {
+      const photoId = msg.content.toString();
+      const photo = await db
+        .collection("photos")
+        .findOne({ _id: new ObjectId(photoId) });
+  
+      const replyTo = msg.properties.replyTo;
+      const correlationId = msg.properties.correlationId;
+  
+      await rabbitMQClient.channel.sendToQueue(
+        replyTo,
+        Buffer.from(JSON.stringify(photo ?? null)),
+        { correlationId }
+      );
+    }
+  },
+  {
+    queue: "delete_photo_by_id",
+    consume: true,
+    function: async (msg) => {
+      const photoId = msg.content.toString();
+      await db.collection("photos").deleteOne({ _id: new ObjectId(photoId) });
+      console.log(`Photo ${photoId} deleted`);
+    }
+  },
 ]);
 
 // const testFunction = async (msg) => {
