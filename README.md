@@ -2,19 +2,7 @@
 
 ## Service Status
 
-| Service    | Status    | Port | Description            |
-| ---------- | --------- | ---- | ---------------------- |
-| gateway    | ✅ Active | 2000 | API Gateway            |
-| auth       | ✅ Active | -    | Authentication Service |
-| mail       | ✅ Active | -    | Mail Service           |
-| clock      | ✅ Active | -    | Clock Service          |
-| read       | ✅ Active | -    | Read Service           |
-| register   | ✅ Active | -    | Registration Service   |
-| score      | ✅ Active | -    | Scoring Service        |
-| target     | ✅ Active | -    | Target Service         |
-| RabbitMQ   | ✅ Active | 5672 | Message Broker         |
-| Grafana    | ✅ Active | 2001 | Monitoring Dashboard   |
-| Prometheus | ✅ Active | 9090 | Metrics Collection     |
+![Auth Workflow](https://github.com/Bacio001-CCG/DEVOPS/actions/workflows/action.yml/badge.svg)
 
 ## Commands
 
