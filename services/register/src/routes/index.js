@@ -2,7 +2,6 @@ import express from "express";
 import { db } from "../database.js";
 import { authenticateJWT } from "../middleware/auth.js";
 import RabbitMQClient from "../rabbitmq.js";
-import { getAllTargets } from "../index.js";
 
 const router = express.Router();
 

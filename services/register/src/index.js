@@ -193,7 +193,7 @@ app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
 });
 
-getAllTargets = async (getEndedTargets) => {
+export const getAllTargets = async (getEndedTargets) => {
   try {
     const sortOrder = getEndedTargets ? -1 : 1;
 
