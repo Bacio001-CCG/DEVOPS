@@ -106,38 +106,6 @@ const rabbitMQClient = new RabbitMQClient([
   },
 ]);
 
-/**
- * @swagger
- * /{target}/photo:
- *   post:
- *     tags:
- *       - Photos
- *     summary: Upload a photo for a target
- *     description: Uploads a new photo associated with a specific target
- *     parameters:
- *       - in: path
- *         name: target
- *         required: true
- *         description: Target identifier
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               file:
- *                 type: string
- *                 format: binary
- *                 description: The photo file to upload
- *     responses:
- *       200:
- *         description: Photo successfully received
- *       500:
- *         description: Server error
- */
 router.post("/:target/photo", async function (req, res) {
   try {
     const files = req.files;
@@ -183,11 +151,11 @@ router.post("/:target/photo", async function (req, res) {
   }
 });
 
-router.get("/:target/myScores", async function (req, res) {
+router.get("/:target/my-scores", async function (req, res) {
   try {
     const scores = await db
       .collection("photos")
-      .find({ target: req.params.target, owner: req.user.username })
+      .find({ target: req.params.target, owner: req.headers['x-user-username']})
       .toArray();
 
     return res.status(200).json(scores);
@@ -202,7 +170,7 @@ router.get("/:target/myScores", async function (req, res) {
 router.delete("/photo/:photoId", async (req, res) => {
   try {
     const photoId = req.params.photoId;
-    const username = req.user.username;
+    const username = req.headers['x-user-username'];
     
     const photo = await db
       .collection("photos")
