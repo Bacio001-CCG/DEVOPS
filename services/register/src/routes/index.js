@@ -19,7 +19,6 @@ router.get("/", async function (req, res) {
   }
 });
 
-// Use authenticateOrganizerJWT if you want to restrict this route to users with role organizers only
 router.post("/", authenticateJWT, async function (req, res) {
   try {
     const files = req.files;
@@ -30,7 +29,6 @@ router.post("/", authenticateJWT, async function (req, res) {
     const date = formData.date;
     const time = formData.time;
     const username = req.user.username;    
-    console.log("email:", req.user.email);
     const email = req.user.email;
     const target = Math.random().toString(36).substring(2, 15);
 

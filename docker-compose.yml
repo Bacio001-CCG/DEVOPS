@@ -1,11 +1,8 @@
-version: '3.9'
 services:
   clock:
     build:
       context: ./services/clock
       dockerfile: Dockerfile.dev
-    ports:
-      - "5001:5001"
     environment:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
@@ -30,8 +27,6 @@ services:
     build:
       context: ./services/mail
       dockerfile: Dockerfile.dev
-    ports:
-      - "5002:5002"
     environment:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
@@ -56,8 +51,6 @@ services:
     build:
       context: ./services/read
       dockerfile: Dockerfile.dev
-    ports:
-      - "5003:5003"
     environment:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
@@ -82,8 +75,6 @@ services:
     build:
       context: ./services/register
       dockerfile: Dockerfile.dev
-    ports:
-      - "5004:5004"
     environment:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
@@ -108,8 +99,6 @@ services:
     build:
       context: ./services/score
       dockerfile: Dockerfile.dev
-    ports:
-      - "5005:5005"
     environment:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
@@ -134,8 +123,6 @@ services:
     build:
       context: ./services/target
       dockerfile: Dockerfile.dev
-    ports:
-      - "5006:5006"
     environment:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
@@ -160,8 +147,6 @@ services:
     build:
       context: ./services/auth
       dockerfile: Dockerfile.dev
-    ports:
-      - "5007:5007"
     volumes:
       - ./services/auth/src:/app/src
       - ./services/auth/package.json:/app/package.json
@@ -176,6 +161,33 @@ services:
       auth-mongodb:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+
+  gateway:
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./services/gateway/src:/app/src
+      - ./services/gateway/package.json:/app/package.json
+      - ./services/gateway/package-lock.json:/app/package-lock.json
+      - ./services/gateway/routes.config.js:/app/routes.config.js
+      - ./services/gateway/swagger.yaml:/app/swagger.yaml
+    stdin_open: true
+    env_file:
+      - .env
+    networks:
+      - gateway
+      - rabbitmq
+      - auth
+      - mail
+      - clock
+      - read
+      - register
+      - score
+      - target
+    depends_on:
+      gateway-mongodb:
         condition: service_healthy
 
   rabbitmq:
@@ -199,9 +211,6 @@ services:
     image: mongo:latest
     ports:
       - "${MONGO_AUTH_PORT}:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_AUTH_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_AUTH_ROOT_PASSWORD}
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -209,7 +218,7 @@ services:
       retries: 5
       start_period: 5s
     volumes:
-      - /docker/auth-mongodb/data:/data/db
+      - auth-mongodb-data:/data/db
     networks:
       - auth
 
@@ -218,9 +227,6 @@ services:
     image: mongo:latest
     ports:
       - "${MONGO_MAIL_PORT}:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_MAIL_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_MAIL_ROOT_PASSWORD}
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -228,7 +234,7 @@ services:
       retries: 5
       start_period: 5s
     volumes:
-      - /docker/mail-mongodb/data:/data/db
+      - mail-mongodb-data:/data/db
     networks:
       - mail
 
@@ -237,9 +243,6 @@ services:
     image: mongo:latest
     ports:
       - "${MONGO_CLOCK_PORT}:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_CLOCK_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_CLOCK_ROOT_PASSWORD}
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -247,7 +250,7 @@ services:
       retries: 5
       start_period: 5s
     volumes:
-      - /docker/clock-mongodb/data:/data/db
+      - clock-mongodb-data:/data/db
     networks:
       - clock
 
@@ -256,9 +259,6 @@ services:
     image: mongo:latest
     ports:
       - "${MONGO_READ_PORT}:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_READ_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_READ_ROOT_PASSWORD}
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -266,7 +266,7 @@ services:
       retries: 5
       start_period: 5s
     volumes:
-      - /docker/read-mongodb/data:/data/db
+      - read-mongodb-data:/data/db
     networks:
       - read
 
@@ -275,9 +275,6 @@ services:
     image: mongo:latest
     ports:
       - "${MONGO_REGISTER_PORT}:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_REGISTER_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_REGISTER_ROOT_PASSWORD}
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -285,19 +282,15 @@ services:
       retries: 5
       start_period: 5s
     volumes:
-      - /docker/register-mongodb/data:/data/db
+      - register-mongodb-data:/data/db
     networks:
       - register
-
 
   score-mongodb:
     restart: always
     image: mongo:latest
     ports:
       - "${MONGO_SCORE_PORT}:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_SCORE_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_SCORE_ROOT_PASSWORD}
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -305,7 +298,7 @@ services:
       retries: 5
       start_period: 5s
     volumes:
-      - /docker/score-mongodb/data:/data/db
+      - score-mongodb-data:/data/db
     networks:
       - score
 
@@ -314,9 +307,6 @@ services:
     image: mongo:latest
     ports:
       - "${MONGO_TARGET_PORT}:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_TARGET_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_TARGET_ROOT_PASSWORD}
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -324,9 +314,25 @@ services:
       retries: 5
       start_period: 5s
     volumes:
-      - /docker/target-mongodb/data:/data/db
+      - target-mongodb-data:/data/db
     networks:
       - target
+
+  gateway-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "${MONGO_GATEWAY_PORT}:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - gateway-mongodb-data:/data/db
+    networks:
+      - gateway
 
 networks:
   auth:
@@ -345,3 +351,15 @@ networks:
     driver: bridge
   target:
     driver: bridge
+  gateway:
+    driver: bridge
+
+volumes:
+  auth-mongodb-data:
+  mail-mongodb-data:
+  clock-mongodb-data:
+  read-mongodb-data:
+  register-mongodb-data:
+  score-mongodb-data:
+  target-mongodb-data:
+  gateway-mongodb-data:

@@ -20,9 +20,7 @@
     "mongodb": "^6.13.0",
     "pixelmatch": "^7.1.0",
     "pngjs": "^7.0.0",
-    "ssim.js": "^3.5.0",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "ssim.js": "^3.5.0"
   },
   "devDependencies": {
     "eslint": "^9.24.0",

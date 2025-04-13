@@ -8,7 +8,7 @@ import RabbitMQClient from "../rabbitmq.js";
 
 const router = express.Router();
 
-const rabbitMQClient = new RabbitMQClient;
+const rabbitMQClient = new RabbitMQClient();
 
 router.get("/", async function (req, res) {
   try {
@@ -22,6 +22,7 @@ router.get("/", async function (req, res) {
 });
 
 router.post("/register", async function (req, res) {
+  console.log("Registering user:", req.body);
   try {
     const { email, username, organizer = false } = req.body;
 
@@ -75,7 +76,9 @@ router.post("/login", async function (req, res) {
     const { username, password } = req.body;
 
     if (!username || !password) {
-      return res.status(400).json({ message: "Username and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Username and password are required" });
     }
 
     const user = await db.collection("users").findOne({ username });
@@ -110,28 +113,31 @@ router.post("/login", async function (req, res) {
   }
 });
 
-router.get("/me", passport.authenticate("jwt", { session: false }), async function (req, res) {
-  try {
-    const user = await db.collection("users").findOne(
-      { _id: req.user._id },
-      { projection: { password: 0 } }
-    );
+router.get(
+  "/me",
+  passport.authenticate("jwt", { session: false }),
+  async function (req, res) {
+    try {
+      const user = await db
+        .collection("users")
+        .findOne({ _id: req.user._id }, { projection: { password: 0 } });
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      return res.status(200).json({
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      });
+    } catch (err) {
+      console.error("Get user error:", err);
+      return res
+        .status(500)
+        .json({ message: err.message ?? "Internal Server Error" });
     }
-
-    return res.status(200).json({
-      username: user.username,
-      email: user.email,
-      role: user.role,
-    });
-
-  } catch (err) {
-    console.error("Get user error:", err);
-    return res.status(500).json({ message: err.message ?? "Internal Server Error" });
   }
-}
 );
 
 export default router;
