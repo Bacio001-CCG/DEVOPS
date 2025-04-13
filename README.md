@@ -2,7 +2,7 @@
 
 ## Service Status
 
-![Auth Workflow](https://github.com/Bacio001-CCG/DEVOPS/actions/workflows/action.yml/badge.svg)
+![Auth Workflow](https://github.com/Bacio001-CCG/DEVOPS/actions/workflows/auth.yml/badge.svg)
 
 ## Commands
 
