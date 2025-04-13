@@ -63,6 +63,114 @@ const rabbitMQClient = new RabbitMQClient([
       }
     },
   },
+  {
+    queue: "end_target",
+    consume: true,
+    function: async (msg) => {
+      try {
+        const targetId = JSON.parse(msg.content.toString());
+
+        if (!targetId) {
+          console.warn("No targetId provided in message");
+          return;
+        }
+
+        console.log("send mq");
+        await rabbitMQClient.send(
+          "get_highest_scorer",
+          JSON.stringify(targetId)
+        );
+
+        await db
+          .collection("registration")
+          .updateMany({ target: targetId }, { $set: { isEnded: true } });
+      } catch (err) {
+        console.error("Error handling target end", err);
+      }
+    },
+  },
+  {
+    queue: "set_winner",
+    consume: true,
+    function: async (msg) => {
+      try {
+        const { targetId, highestScorer, score } = JSON.parse(
+          msg.content.toString()
+        );
+
+        if (!targetId) {
+          console.warn("No targetId provided in message");
+          return;
+        }
+
+        await db
+          .collection("registration")
+          .updateMany(
+            { target: targetId },
+            { $set: { winner: highestScorer, score } }
+          );
+
+        const registration = await db
+          .collection("registration")
+          .findOne({ target: targetId });
+
+        if (!registration || !registration.ownerEmail) {
+          console.warn("Owner email not found for target", targetId);
+          return;
+        }
+
+        const userEmail = registration.ownerEmail;
+        const title = registration.title || "your target";
+
+        await rabbitMQClient.send(
+          "send_email",
+          JSON.stringify({
+            to: userEmail,
+            subject: `Winner selected for target "${title}"`,
+            text: `The winner of "${title}" is ${highestScorer} with a score of ${score}!`,
+          })
+        );
+
+        console.log(
+          `Target ${targetId} ended with winner: ${highestScorer} and score: ${score}`
+        );
+      } catch (err) {
+        console.error("Error handling target end", err);
+      }
+    },
+  },
+  {
+    queue: "get_targets",
+    consume: true,
+    function: async (msg) => {
+      try {
+        const { replyTo, correlationId } = msg.properties;
+        const { isEnded } = JSON.parse(msg.content.toString());
+
+        const result = await getAllTargets(isEnded); // This is your existing function
+
+        if (replyTo) {
+          await rabbitMQClient.channel.sendToQueue(
+            replyTo,
+            Buffer.from(JSON.stringify(result)),
+            { correlationId }
+          );
+          console.log(
+            `Sent ${isEnded ? "ended" : "active"} targets to read service`
+          );
+        }
+      } catch (err) {
+        console.error("Error fetching targets:", err);
+        if (msg.properties.replyTo) {
+          await rabbitMQClient.channel.sendToQueue(
+            msg.properties.replyTo,
+            Buffer.from(JSON.stringify({ error: err.message, success: false })),
+            { correlationId: msg.properties.correlationId }
+          );
+        }
+      }
+    },
+  },
 ]);
 
 const app = express();
@@ -107,5 +215,44 @@ app.use((req, res, next) => {
     next();
   }
 });
+
+export const getAllTargets = async (getEndedTargets) => {
+  try {
+    const sortOrder = getEndedTargets ? -1 : 1;
+
+    const results = await db
+      .collection("registration")
+      .find({ isEnded: getEndedTargets })
+      .sort({ endTime: sortOrder })
+      .toArray();
+
+    const orderedResults = results.map((target) => {
+      const base = {
+        title: target.title,
+        target: target.target,
+        description: target.description,
+        location: target.location,
+        owner: target.owner,
+        startTime: target.startTime,
+        endTime: target.endTime,
+        fileName: target.fileName,
+        fileBase64: target.fileBase64,
+      };
+
+      // Add winner & score if the target has ended
+      if (getEndedTargets) {
+        base.winner = target.winner ?? null;
+        base.score = target.score ?? null;
+      }
+
+      return base;
+    });
+
+    return orderedResults;
+  } catch (err) {
+    console.error("Error fetching targets", err);
+    throw err;
+  }
+};
 
 export default app;

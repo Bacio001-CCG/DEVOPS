@@ -23,7 +23,8 @@ app.listen(process.env.MAIL_PORT, "0.0.0.0", () => {
 
 new RabbitMQClient([
   {
-    queue: "send_email",
+    queue: "send_email",    
+    consume: true,
     function: function (msg) {
       const content = JSON.parse(msg.content.toString());
       sendEmail(content.to, content.subject, content.text);

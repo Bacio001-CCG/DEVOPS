@@ -5,7 +5,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import routes from "../routes.config.js";
-import { authenticateJWT } from "./middleware/auth.js";
+import { authenticateJWT, authenticateOrganizerJWT } from "./middleware/auth.js";
 import CircuitBreaker from "opossum";
 import axios from "axios";
 import swaggerUi from "swagger-ui-express";
@@ -49,7 +49,14 @@ routes.forEach((route) => {
 
   if (route.auth) {
     app.use(route.path, (req, res, next) => {
-      authenticateJWT(req, res, () => next());
+      const authenticateMethod = route.authOrg ? authenticateOrganizerJWT : authenticateJWT;
+
+      authenticateMethod(req, res, () => {
+        req.headers['x-user-id'] = req.user.id;
+        req.headers['x-user-username'] = req.user.username;
+        req.headers['x-user-email'] = req.user.email;
+        next();
+      });
     });
   }
 

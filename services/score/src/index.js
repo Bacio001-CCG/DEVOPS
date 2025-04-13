@@ -21,7 +21,7 @@ const rabbitMQClient = new RabbitMQClient([
 ]);
 
 async function calculateScore(msg) {
-  const { target, photo } = JSON.parse(msg.content.toString());
+  const { target, photo, photoId } = JSON.parse(msg.content.toString());
   const response = await rabbitMQClient.request(
     "register_request",
     JSON.stringify({ target })
@@ -66,7 +66,7 @@ async function calculateScore(msg) {
     // Send back the score
     await rabbitMQClient.send(
       "score_result",
-      JSON.stringify({ score: similarityScore })
+      JSON.stringify({score: similarityScore, photoId})
     );
   } catch (error) {
     console.error("Error calculating score:", error);
