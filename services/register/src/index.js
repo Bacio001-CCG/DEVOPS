@@ -187,9 +187,12 @@ app.listen(process.env.PORT, () => {
 
 export const getAllTargets = async (getEndedTargets) => {
   try {
+    const sortOrder = getEndedTargets ? -1 : 1;
+
     const results = await db
       .collection("registration")
       .find({ isEnded: getEndedTargets })
+      .sort({ endTime: sortOrder })
       .toArray();
 
     const orderedResults = results.map(target => {

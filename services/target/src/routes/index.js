@@ -178,4 +178,53 @@ router.post("/:target/photo", authenticateJWT, async function (req, res) {
   }
 });
 
+router.get("/:target/myScores", authenticateJWT, async function (req, res) {
+  try {
+    const scores = await db
+      .collection("photos")
+      .find({ target: req.params.target, owner: req.user.username })
+      .toArray();
+
+    return res.status(200).json(scores);
+  } catch (err) {
+    console.error("Error in myScores handler:", err);
+    return res
+      .status(500)
+      .json({ message: err?.message ?? "Internal Server Error" });
+  }
+});
+
+router.delete("/photo/:photoId", authenticateJWT, async (req, res) => {
+  try {
+    const photoId = req.params.photoId;
+    const username = req.user.username;
+    
+    const photo = await db
+      .collection("photos")
+      .findOne({ _id: new ObjectId(photoId) });
+
+    if (!photo) {
+      return res.status(404).json({ message: "Photo not found" });
+    }
+
+    if (photo.owner !== username) {
+      return res
+        .status(403)
+        .json({ message: "You can only delete your own photos" });
+    }
+
+    await db
+      .collection("photos")
+      .deleteOne({ _id: new ObjectId(photoId) });
+
+    return res.status(200).json({ message: "Photo deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting photo:", err);
+    return res
+      .status(500)
+      .json({ message: err?.message ?? "Internal Server Error" });
+  }
+});
+
+
 export default router;
