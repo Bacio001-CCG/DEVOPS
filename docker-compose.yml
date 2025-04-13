@@ -1,4 +1,6 @@
 services:
+# ----------------------------------- MICRO SERVICES -----------------------------------
+
   clock:
     build:
       context: ./services/clock
@@ -163,6 +165,8 @@ services:
     build:
       context: ./services/gateway
       dockerfile: Dockerfile.dev
+    ports:
+      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
     volumes:
       - ./services/gateway/src:/app/src
       - ./services/gateway/package.json:/app/package.json
@@ -186,6 +190,8 @@ services:
       gateway-mongodb:
         condition: service_healthy
 
+# ----------------------------------- EXTERNAL SERVICES -----------------------------------
+
   rabbitmq:
     image: rabbitmq:4.0.7
     healthcheck:
@@ -201,6 +207,71 @@ services:
     networks:
       - rabbitmq
     attach: false
+
+# grafana:
+#     image: grafana/grafana:11.5.2
+#     ports:
+#       - "${GRAFANA_PORT}:3000"
+#     environment:
+#       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+#       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+#       - GF_USERS_ALLOW_SIGN_UP=false
+#     volumes:
+#       - grafana-storage:/var/lib/grafana
+#       - ./grafana/provisioning:/etc/grafana/provisioning
+#       - ./grafana/config.ini:/etc/grafana/config.ini
+#       - ./grafana/dashboards:/var/lib/grafana/dashboards
+#     networks:
+#       - read
+#       - register
+#       - score
+#       - target
+#       - clock
+#       - mail
+#       - auth
+#       - rabbitmq
+#       - gateway
+#     depends_on:
+#       - prometheus
+#     restart: unless-stopped
+#     attach: false
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    ports:
+      - "${PROMETHEUS_PORT}:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - read
+      - register
+      - score
+      - target
+      - clock
+      - mail
+      - auth
+      - rabbitmq
+      - gateway
+    restart: unless-stopped
+    depends_on:
+      - read
+      - register
+      - score
+      - target
+      - clock
+      - mail
+      - auth
+      - rabbitmq
+      - gateway
+    attach: false
+
+# ----------------------------------- DATABASE -----------------------------------
 
   auth-mongodb:
     restart: always
@@ -330,6 +401,98 @@ services:
     networks:
       - gateway
 
+# ----------------------------------- EXPORTS -----------------------------------
+
+  auth-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      MONGODB_URI: ${AUTH_DB_URL}
+    networks:
+      - auth
+    depends_on:
+      auth-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mail-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      MONGODB_URI: ${MAIL_DB_URL}
+    networks:
+      - mail
+    depends_on:
+      mail-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  clock-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      MONGODB_URI: ${CLOCK_DB_URL}
+    networks:
+      - clock
+    depends_on:
+      clock-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  read-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      MONGODB_URI: ${READ_DB_URL}
+    networks:
+      - read
+    depends_on:
+      read-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  register-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      MONGODB_URI: ${REGISTER_DB_URL}
+    networks:
+      - register
+    depends_on:
+      register-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  score-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      MONGODB_URI: ${SCORE_DB_URL}
+    networks:
+      - score
+    depends_on:
+      score-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  target-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      MONGODB_URI: ${TARGET_DB_URL}
+    networks:
+      - target
+    depends_on:
+      target-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  gateway-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      MONGODB_URI: ${GATEWAY_DB_URL}
+    networks:
+      - gateway
+    depends_on:
+      gateway-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+# ----------------------------------- NETWORKS -----------------------------------
+
 networks:
   auth:
     driver: bridge
@@ -350,6 +513,8 @@ networks:
   gateway:
     driver: bridge
 
+# ----------------------------------- VOLUMES -----------------------------------
+
 volumes:
   auth-mongodb-data:
   mail-mongodb-data:
@@ -359,3 +524,4 @@ volumes:
   score-mongodb-data:
   target-mongodb-data:
   gateway-mongodb-data:
+  prometheus:
