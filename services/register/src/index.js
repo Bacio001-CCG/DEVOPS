@@ -189,33 +189,6 @@ app.listen(process.env.REGISTER_PORT, "0.0.0.0", () => {
 
 app.use("/", routes);
 
-// Metrics endpoint for prometheus
-app.get("/metrics", async (req, res) => {
-  res.setHeader("Content-Type", register.contentType);
-  res.send(await register.metrics());
-});
-
-// Health check for prometheus
-app.use((req, res, next) => {
-  const start = Date.now();
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    httpRequestDuration
-      .labels(req.method, req.route?.path || req.path, res.statusCode)
-      .observe(duration / 1000);
-  });
-  next();
-});
-
-// Health check for gateway
-app.use((req, res, next) => {
-  if (req.method === "HEAD") {
-    res.status(200).end();
-  } else {
-    next();
-  }
-});
-
 export const getAllTargets = async (getEndedTargets) => {
   try {
     const sortOrder = getEndedTargets ? -1 : 1;
@@ -254,5 +227,32 @@ export const getAllTargets = async (getEndedTargets) => {
     throw err;
   }
 };
+
+// Metrics endpoint for prometheus
+app.get("/metrics", async (req, res) => {
+  res.setHeader("Content-Type", register.contentType);
+  res.send(await register.metrics());
+});
+
+// Health check for prometheus
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    httpRequestDuration
+      .labels(req.method, req.route?.path || req.path, res.statusCode)
+      .observe(duration / 1000);
+  });
+  next();
+});
+
+// Health check for gateway
+app.use((req, res, next) => {
+  if (req.method === "HEAD") {
+    res.status(200).end();
+  } else {
+    next();
+  }
+});
 
 export default app;
