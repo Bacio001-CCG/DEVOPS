@@ -116,6 +116,38 @@ const rabbitMQClient = new RabbitMQClient([
       }
     },
   },
+  {
+    queue: "get_targets",
+    consume: true,
+    function: async (msg) => {
+      try {
+        const { replyTo, correlationId } = msg.properties;
+        const { isEnded } = JSON.parse(msg.content.toString());
+  
+        const result = await getAllTargets(isEnded); // This is your existing function
+  
+        if (replyTo) {
+          await rabbitMQClient.channel.sendToQueue(
+            replyTo,
+            Buffer.from(JSON.stringify(result)),
+            { correlationId }
+          );
+          console.log(`Sent ${isEnded ? "ended" : "active"} targets to read service`);
+        }
+      } catch (err) {
+        console.error("Error fetching targets:", err);
+        if (msg.properties.replyTo) {
+          await rabbitMQClient.channel.sendToQueue(
+            msg.properties.replyTo,
+            Buffer.from(
+              JSON.stringify({ error: err.message, success: false })
+            ),
+            { correlationId: msg.properties.correlationId }
+          );
+        }
+      }
+    }
+  },
 ]);
 
 const app = express();
@@ -152,5 +184,41 @@ app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
 });
+
+export const getAllTargets = async (getEndedTargets) => {
+  try {
+    const results = await db
+      .collection("registration")
+      .find({ isEnded: getEndedTargets })
+      .toArray();
+
+    const orderedResults = results.map(target => {
+      const base = {
+        title: target.title,
+        target: target.target,
+        description: target.description,
+        location: target.location,
+        owner: target.owner,
+        startTime: target.startTime,
+        endTime: target.endTime,
+        fileName: target.fileName,
+        fileBase64: target.fileBase64,
+      };
+
+      // Add winner & score if the target has ended
+      if (getEndedTargets) {
+        base.winner = target.winner ?? null;
+        base.score = target.score ?? null;
+      }
+
+      return base;
+    });
+
+    return orderedResults;
+  } catch (err) {
+    console.error("Error fetching targets", err);
+    throw err;
+  }
+};
 
 export default app;

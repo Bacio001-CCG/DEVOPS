@@ -71,10 +71,12 @@ services:
       - .env
     networks:
       - read
-      - rabbitmq
-    depends_on:
-      - read-mongodb
-      - rabbitmq   
+      - rabbitmq    
+    depends_on:    
+      read-mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
   register:
     build:

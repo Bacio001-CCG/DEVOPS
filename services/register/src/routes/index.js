@@ -2,6 +2,7 @@ import express from "express";
 import { db } from "../database.js";
 import { authenticateJWT } from "../middleware/auth.js";
 import RabbitMQClient from "../rabbitmq.js";
+import { getAllTargets } from "../index.js";
 
 const router = express.Router();
 
@@ -58,6 +59,7 @@ router.post("/", authenticateJWT, async function (req, res) {
         endTime: dateTime,
         startTime: new Date().toISOString(),        
         winner: null,
+        score: null,
         isEnded: false,
       });
     });
@@ -78,6 +80,15 @@ router.post("/", authenticateJWT, async function (req, res) {
     });
   } catch (err) {
     return res.status(500).json(err?.message ?? "Internal Server Error");
+  }
+});
+
+router.get("/active-targets", async (req, res) => {
+  try {
+    const activeTargets = await getAllTargets(true);
+    return res.status(200).json(activeTargets);
+  } catch (err) {
+    return res.status(500).json({ message: err?.message ?? "Internal Server Error" });
   }
 });
 
