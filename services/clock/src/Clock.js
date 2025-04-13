@@ -6,6 +6,7 @@ class Clock {
     this.rabbitMQClient = new RabbitMQClient([
       {
         queue: "start_clock",
+        consume: true,
         function: this.setupClock.bind(this),
       },
     ]);
@@ -25,10 +26,8 @@ class Clock {
         { $set: { isEnded: true } }
       );
 
-      //use rabbitmq to notify other services about the clock end
-      //await this.rabbitMQClient.send("something", JSON.stringify(data));
-    
-      console.log(`Ended clock for target ${targetId} with _id ${timing._id}`);
+      console.log(`Sending end_target for ${targetId}`);
+      await this.rabbitMQClient.send("end_target", JSON.stringify(targetId));
     } else {
       console.log(`No active clock found for target ${targetId}`);
     }
