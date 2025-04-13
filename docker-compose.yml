@@ -212,33 +212,10 @@ services:
       - rabbitmq
     attach: false
 
-# grafana:
-#     image: grafana/grafana:11.5.2
-#     ports:
-#       - "${GRAFANA_PORT}:3000"
-#     environment:
-#       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
-#       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
-#       - GF_USERS_ALLOW_SIGN_UP=false
-#     volumes:
-#       - grafana-storage:/var/lib/grafana
-#       - ./grafana/provisioning:/etc/grafana/provisioning
-#       - ./grafana/config.ini:/etc/grafana/config.ini
-#       - ./grafana/dashboards:/var/lib/grafana/dashboards
-#     networks:
-#       - read
-#       - register
-#       - score
-#       - target
-#       - clock
-#       - mail
-#       - auth
-#       - rabbitmq
-#       - gateway
-#     depends_on:
-#       - prometheus
-#     restart: unless-stopped
-#     attach: false
+  grafana:
+    build: ./grafana
+    ports: 
+      - "${GRAFANA_PORT}:3000"
 
   prometheus:
     image: prom/prometheus:v3.2.1
@@ -529,3 +506,4 @@ volumes:
   target-mongodb-data:
   gateway-mongodb-data:
   prometheus:
+  grafana-data:
