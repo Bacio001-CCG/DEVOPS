@@ -1,136 +1,545 @@
 services:
+# ----------------------------------- MICRO SERVICES -----------------------------------
+
   clock:
     build:
       context: ./services/clock
       dockerfile: Dockerfile.prod
-    ports:
-      - "5001:5001"
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=production
+      - CLOCK_DB_URL=mongodb://clock-mongodb:27017?authSource=admin
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=fi2idojiekgivkck2kjhi4
+      - CLOCK_PORT=2000
     volumes:
-      - ./services/clock/src:/app/services/clock/src
-      - ./services/clock/package.json:/app/services/clock/package.json
-      - ./services/clock/package-lock.json:/app/services/clock/package-lock.json
-      - ./services/clock/.env:/app/services/clock/.env
+      - ./services/clock/src:/app/src
+      - ./services/clock/package.json:/app/package.json
+      - ./services/clock/package-lock.json:/app/package-lock.json
     stdin_open: true
-    env_file:
-      - ./services/clock/.env
     networks:
-      - main-network
+      - clock
+      - rabbitmq
+    depends_on:
+      clock-mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
   mail:
     build:
       context: ./services/mail
       dockerfile: Dockerfile.prod
-    ports:
-      - "5002:5002"
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=production
+      - MAIL_DB_URL=mongodb://mail-mongodb:27017?authSource=admin
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - EMAIL_USER=casbackx@gmail.com
+      - EMAIL_PASS=xjnoztgiotsozvdl
+      - JWT_SECRET=fi2idojiekgivkck2kjhi4
+      - MAIL_PORT=2000
     volumes:
-      - ./services/mail/src:/app/services/mail/src
-      - ./services/mail/package.json:/app/services/mail/package.json
-      - ./services/mail/package-lock.json:/app/services/mail/package-lock.json
-      - ./services/mail/.env:/app/services/mail/.env
+      - ./services/mail/src:/app/src
+      - ./services/mail/package.json:/app/package.json
+      - ./services/mail/package-lock.json:/app/package-lock.json
     stdin_open: true
-    env_file:
-      - ./services/mail/.env
     networks:
-      - main-network
+      - mail
+      - rabbitmq
+    depends_on:    
+      mail-mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
   read:
     build:
       context: ./services/read
       dockerfile: Dockerfile.prod
-    ports:
-      - "5003:5003"
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=production
+      - READ_DB_URL=mongodb://read-mongodb:27017?authSource=admin
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=fi2idojiekgivkck2kjhi4
+      - READ_PORT=2000
     volumes:
-      - ./services/read/src:/app/services/read/src
-      - ./services/read/package.json:/app/services/read/package.json
-      - ./services/read/package-lock.json:/app/services/read/package-lock.json
-      - ./services/read/.env:/app/services/read/.env
+      - ./services/read/src:/app/src
+      - ./services/read/package.json:/app/package.json
+      - ./services/read/package-lock.json:/app/package-lock.json
     stdin_open: true
-    env_file:
-      - ./services/read/.env
     networks:
-      - main-network
-      
-  auth:
-    build:
-      context: ./services/auth
-      dockerfile: Dockerfile.prod
-    ports:
-      - "5007:5007"
-    volumes:
-      - ./services/auth/src:/app/services/auth/src
-      - ./services/auth/package.json:/app/services/auth/package.json
-      - ./services/auth/package-lock.json:/app/services/auth/package-lock.json
-      - ./services/auth/.env:/app/services/auth/.env
-    stdin_open: true
-    env_file:
-      - ./services/auth/.env
-    networks:
-      - main-network
+      - read
+      - rabbitmq    
+    depends_on:    
+      read-mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
   register:
     build:
       context: ./services/register
       dockerfile: Dockerfile.prod
-    ports:
-      - "5004:5004"
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=production
+      - REGISTER_DB_URL=mongodb://register-mongodb:27017?authSource=admin
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=fi2idojiekgivkck2kjhi4
+      - REGISTER_PORT=2000
     volumes:
-      - ./services/register/src:/app/services/register/src
-      - ./services/register/package.json:/app/services/register/package.json
-      - ./services/register/package-lock.json:/app/services/register/package-lock.json
-      - ./services/register/.env:/app/services/register/.env
+      - ./services/register/src:/app/src
+      - ./services/register/package.json:/app/package.json
+      - ./services/register/package-lock.json:/app/package-lock.json
     stdin_open: true
-    env_file:
-      - ./services/register/.env
     networks:
-      - main-network
+      - register
+      - rabbitmq
+    depends_on:    
+      register-mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
   score:
     build:
       context: ./services/score
       dockerfile: Dockerfile.prod
-    ports:
-      - "5005:5005"
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=production
+      - SCORE_DB_URL=mongodb://score-mongodb:27017?authSource=admin
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=fi2idojiekgivkck2kjhi4
+      - SCORE_PORT=2000
     volumes:
-      - ./services/score/src:/app/services/score/src
-      - ./services/score/package.json:/app/services/score/package.json
-      - ./services/score/package-lock.json:/app/services/score/package-lock.json
-      - ./services/score/.env:/app/services/score/.env
+      - ./services/score/src:/app/src
+      - ./services/score/package.json:/app/package.json
+      - ./services/score/package-lock.json:/app/package-lock.json
     stdin_open: true
-    env_file:
-      - ./services/score/.env
     networks:
-      - main-network
+      - score
+      - rabbitmq
+    depends_on:
+      score-mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
   target:
     build:
       context: ./services/target
       dockerfile: Dockerfile.prod
-    ports:
-      - "5006:5006"
-    volumes:
-      - ./services/target/src:/app/services/target/src
-      - ./services/target/package.json:/app/services/target/package.json
-      - ./services/target/package-lock.json:/app/services/target/package-lock.json
-      - ./services/target/.env:/app/services/target/.env
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=production
+      - TARGET_DB_URL=mongodb://target-mongodb:27017?authSource=admin
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=fi2idojiekgivkck2kjhi4
+      - TARGET_PORT=2000
     stdin_open: true
-    env_file:
-      - ./services/target/.env
+    volumes:
+      - ./services/target/src:/app/src
+      - ./services/target/package.json:/app/package.json
+      - ./services/target/package-lock.json:/app/package-lock.json
     networks:
-      - main-network
+      - target
+      - rabbitmq
+    depends_on:
+      target-mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+  
+  auth:
+    build:
+      context: ./services/auth
+      dockerfile: Dockerfile.prod
+    environment:
+      - AUTH_DB_URL=mongodb://auth-mongodb:27017?authSource=admin
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=fi2idojiekgivkck2kjhi4
+      - AUTH_PORT=2000
+    volumes:
+      - ./services/auth/src:/app/src
+      - ./services/auth/package.json:/app/package.json
+      - ./services/auth/package-lock.json:/app/package-lock.json
+    stdin_open: true
+    networks:
+      - auth
+      - rabbitmq
+    depends_on:
+      auth-mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
-  mongodb:
+  gateway:
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile.prod
+    ports:
+      - "2000:2000"
+    environment:
+      - GATEWAY_DB_URL=mongodb://gateway-mongodb:27017?authSource=admin
+      - GATEWAY_PORT=2000
+      - JWT_SECRET=fi2idojiekgivkck2kjhi4
+    volumes:
+      - ./services/gateway/src:/app/src
+      - ./services/gateway/package.json:/app/package.json
+      - ./services/gateway/package-lock.json:/app/package-lock.json
+      - ./services/gateway/routes.config.js:/app/routes.config.js
+      - ./services/gateway/swagger.yaml:/app/swagger.yaml
+    stdin_open: true
+    networks:
+      - gateway
+      - rabbitmq
+      - auth
+      - mail
+      - clock
+      - read
+      - register
+      - score
+      - target
+    depends_on:
+      gateway-mongodb:
+        condition: service_healthy
+
+# ----------------------------------- EXTERNAL SERVICES -----------------------------------
+
+  rabbitmq:
+    image: rabbitmq:4.0.7
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
     restart: always
+    networks:
+      - rabbitmq
 
+  grafana:
+    image: grafana/grafana:11.5.2
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/config.ini:/etc/grafana/config.ini
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - read
+      - register
+      - score
+      - target
+      - clock
+      - mail
+      - auth
+      - gateway
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - read
+      - register
+      - score
+      - target
+      - clock
+      - mail
+      - auth
+      - gateway
+    restart: unless-stopped
+    depends_on:
+      - read
+      - register
+      - score
+      - target
+      - clock
+      - mail
+      - auth
+      - gateway
+
+# ----------------------------------- DATABASE -----------------------------------
+
+  auth-mongodb:
+    restart: always
     image: mongo:latest
     ports:
-      - "27018:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+      - "28017:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     volumes:
-      - /docker/mongodb/data:/data/db
+      - auth-mongodb-data:/data/db
     networks:
-      - main-network
-      
+      - auth
+
+  mail-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "29017:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - mail-mongodb-data:/data/db
+    networks:
+      - mail
+
+  clock-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "30017:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - clock-mongodb-data:/data/db
+    networks:
+      - clock
+
+  read-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "31017:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - read-mongodb-data:/data/db
+    networks:
+      - read
+
+  register-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "32017:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - register-mongodb-data:/data/db
+    networks:
+      - register
+
+  score-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "33017:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - score-mongodb-data:/data/db
+    networks:
+      - score
+
+  target-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "34017:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - target-mongodb-data:/data/db
+    networks:
+      - target
+
+  gateway-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "35017:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - gateway-mongodb-data:/data/db
+    networks:
+      - gateway
+
+# ----------------------------------- EXPORTS -----------------------------------
+
+  auth-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      - MONGODB_URI=mongodb://auth-mongodb:27017?authSource=admin
+    networks:
+      - auth
+    depends_on:
+      auth-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mail-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      - MONGODB_URI=mongodb://mail-mongodb:27017?authSource=admin
+    networks:
+      - mail
+    depends_on:
+      mail-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  clock-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      - MONGODB_URI=mongodb://clock-mongodb:27017?authSource=admin
+    networks:
+      - clock
+    depends_on:
+      clock-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  read-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      - MONGODB_URI=mongodb://read-mongodb:27017?authSource=admin
+    networks:
+      - read
+    depends_on:
+      read-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  register-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      - MONGODB_URI=mongodb://register-mongodb:27017?authSource=admin
+    networks:
+      - register
+    depends_on:
+      register-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  score-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      - MONGODB_URI=mongodb://score-mongodb:27017?authSource=admin
+    networks:
+      - score
+    depends_on:
+      score-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  target-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      - MONGODB_URI=mongodb://target-mongodb:27017?authSource=admin
+    networks:
+      - target
+    depends_on:
+      target-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  gateway-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      - MONGODB_URI=mongodb://gateway-mongodb:27017?authSource=admin
+    networks:
+      - gateway
+    depends_on:
+      gateway-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+# ----------------------------------- NETWORKS -----------------------------------
+
 networks:
-  main-network:
+  auth:
     driver: bridge
+  mail:
+    driver: bridge
+  clock:
+    driver: bridge
+  rabbitmq:
+    driver: bridge
+  read:
+    driver: bridge
+  register:
+    driver: bridge  
+  score:
+    driver: bridge
+  target:
+    driver: bridge
+  gateway:
+    driver: bridge
+
+# ----------------------------------- VOLUMES -----------------------------------
+
+volumes:
+  auth-mongodb-data:
+  mail-mongodb-data:
+  clock-mongodb-data:
+  read-mongodb-data:
+  register-mongodb-data:
+  score-mongodb-data:
+  target-mongodb-data:
+  gateway-mongodb-data:
+  prometheus:
+  grafana-data:
