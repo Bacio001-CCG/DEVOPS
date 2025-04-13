@@ -3,6 +3,13 @@
 ## Service Status
 
 ![Auth Workflow](https://github.com/Bacio001-CCG/DEVOPS/actions/workflows/auth.yml/badge.svg)
+![Clock Workflow](https://github.com/Bacio001-CCG/DEVOPS/actions/workflows/clock.yml/badge.svg)
+![Gateway Workflow](https://github.com/Bacio001-CCG/DEVOPS/actions/workflows/gateway.yml/badge.svg)
+![Mail Workflow](https://github.com/Bacio001-CCG/DEVOPS/actions/workflows/mail.yml/badge.svg)
+![Read Workflow](https://github.com/Bacio001-CCG/DEVOPS/actions/workflows/read.yml/badge.svg)
+![Register Workflow](https://github.com/Bacio001-CCG/DEVOPS/actions/workflows/register.yml/badge.svg)
+![Score Workflow](https://github.com/Bacio001-CCG/DEVOPS/actions/workflows/score.yml/badge.svg)
+![Target Workflow](https://github.com/Bacio001-CCG/DEVOPS/actions/workflows/target.yml/badge.svg)
 
 ## Commands
 

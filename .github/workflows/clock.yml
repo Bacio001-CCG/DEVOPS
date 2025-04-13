@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Clock Service CI
 
 on:
   push:

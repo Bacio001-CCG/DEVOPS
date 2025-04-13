@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Auth Service CI
 
 on:
   push:
