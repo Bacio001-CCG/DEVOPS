@@ -1,11 +1,8 @@
-version: '3.9'
 services:
   clock:
     build:
       context: ./services/clock
       dockerfile: Dockerfile.dev
-    ports:
-      - "5001:5001"
     environment:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
@@ -30,8 +27,6 @@ services:
     build:
       context: ./services/mail
       dockerfile: Dockerfile.dev
-    ports:
-      - "5002:5002"
     environment:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
@@ -56,8 +51,6 @@ services:
     build:
       context: ./services/read
       dockerfile: Dockerfile.dev
-    ports:
-      - "5003:5003"
     environment:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
@@ -80,8 +73,6 @@ services:
     build:
       context: ./services/register
       dockerfile: Dockerfile.dev
-    ports:
-      - "5004:5004"
     environment:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
@@ -106,8 +97,6 @@ services:
     build:
       context: ./services/score
       dockerfile: Dockerfile.dev
-    ports:
-      - "5005:5005"
     environment:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
@@ -130,8 +119,6 @@ services:
     build:
       context: ./services/target
       dockerfile: Dockerfile.dev
-    ports:
-      - "5006:5006"
     environment:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
@@ -156,8 +143,6 @@ services:
     build:
       context: ./services/auth
       dockerfile: Dockerfile.dev
-    ports:
-      - "5007:5007"
     volumes:
       - ./services/auth/src:/app/src
       - ./services/auth/package.json:/app/package.json
@@ -178,13 +163,12 @@ services:
     build:
       context: ./services/gateway
       dockerfile: Dockerfile.dev
-    ports:
-      - "5008:5008"
     volumes:
       - ./services/gateway/src:/app/src
       - ./services/gateway/package.json:/app/package.json
       - ./services/gateway/package-lock.json:/app/package-lock.json
       - ./services/gateway/routes.config.js:/app/routes.config.js
+      - ./services/gateway/swagger.yaml:/app/swagger.yaml
     stdin_open: true
     env_file:
       - .env

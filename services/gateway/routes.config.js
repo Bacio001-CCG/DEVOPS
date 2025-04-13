@@ -10,9 +10,4 @@ export default [
     target: "http://register:" + process.env.REGISTER_PORT,
     auth: true,
   },
-  {
-    path: "/api/breaker",
-    target: "http://localhost:9999/breaker",
-    auth: false,
-  }
 ];
