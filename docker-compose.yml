@@ -277,8 +277,8 @@ services:
   auth-mongodb:
     restart: always
     image: mongo:latest
-    ports:
-      - "${MONGO_AUTH_PORT}:27017"
+    # ports:
+    #   - "${MONGO_AUTH_PORT}:27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -293,8 +293,8 @@ services:
   mail-mongodb:
     restart: always
     image: mongo:latest
-    ports:
-      - "${MONGO_MAIL_PORT}:27017"
+    # ports:
+    #   - "${MONGO_MAIL_PORT}:27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -309,8 +309,8 @@ services:
   clock-mongodb:
     restart: always
     image: mongo:latest
-    ports:
-      - "${MONGO_CLOCK_PORT}:27017"
+    # ports:
+    #   - "${MONGO_CLOCK_PORT}:27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -325,8 +325,8 @@ services:
   read-mongodb:
     restart: always
     image: mongo:latest
-    ports:
-      - "${MONGO_READ_PORT}:27017"
+    # ports:
+    #   - "${MONGO_READ_PORT}:27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -341,8 +341,8 @@ services:
   register-mongodb:
     restart: always
     image: mongo:latest
-    ports:
-      - "${MONGO_REGISTER_PORT}:27017"
+    # ports:
+    #   - "${MONGO_REGISTER_PORT}:27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -357,8 +357,8 @@ services:
   score-mongodb:
     restart: always
     image: mongo:latest
-    ports:
-      - "${MONGO_SCORE_PORT}:27017"
+    # ports:
+    #   - "${MONGO_SCORE_PORT}:27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -373,8 +373,8 @@ services:
   target-mongodb:
     restart: always
     image: mongo:latest
-    ports:
-      - "${MONGO_TARGET_PORT}:27017"
+    # ports:
+    #   - "${MONGO_TARGET_PORT}:27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -389,8 +389,8 @@ services:
   gateway-mongodb:
     restart: always
     image: mongo:latest
-    ports:
-      - "${MONGO_GATEWAY_PORT}:27017"
+    # ports:
+    #   - "${MONGO_GATEWAY_PORT}:27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
