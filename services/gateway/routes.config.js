@@ -12,7 +12,7 @@ export default [
     auth: false,
     health: "http://auth:" + process.env.AUTH_PORT + "/health",
   },
-  
+
   // Register routes
   {
     path: "/api/register",
@@ -20,24 +20,24 @@ export default [
     auth: true,
     authOrg: true,
     health: "http://register:" + process.env.REGISTER_PORT + "/health",
-  },  
+  },
   {
-    path: "/api/register/target/:target/results",
-    target: "http://register:" + process.env.REGISTER_PORT + "/target/:target/results",
-    auth: true,
-    authOrg: true,
-    health: "http://register:" + process.env.REGISTER_PORT + "/health",
-  },  
-  {
-    path: "/api/register/target/:target",
-    target: "http://register:" + process.env.REGISTER_PORT + "/target/:target/photo/:photoId",
+    path: "/api/register/target/results",
+    target: "http://register:" + process.env.REGISTER_PORT + "/target/results",
     auth: true,
     authOrg: true,
     health: "http://register:" + process.env.REGISTER_PORT + "/health",
   },
   {
-    path: "/api/register/target/:target/photo/:photoId",
-    target: "http://register:" + process.env.REGISTER_PORT + "/target/:target/photo/:photoId",
+    path: "/api/register/target",
+    target: "http://register:" + process.env.REGISTER_PORT + "/target/photo",
+    auth: true,
+    authOrg: true,
+    health: "http://register:" + process.env.REGISTER_PORT + "/health",
+  },
+  {
+    path: "/api/register/target/photo",
+    target: "http://register:" + process.env.REGISTER_PORT + "/target/photo",
     auth: true,
     authOrg: true,
     health: "http://register:" + process.env.REGISTER_PORT + "/health",
@@ -45,25 +45,28 @@ export default [
 
   // Target routes
   {
-    path: "/api/target/:target/photo",
-    target: "http://target:" + process.env.TARGET_PORT + "/:target/photo",
+    path: "/api/target/photo",
+    target: "http://target:" + process.env.TARGET_PORT + "/photo",
     auth: true,
+    authOrg: true,
     health: "http://target:" + process.env.TARGET_PORT + "/health",
   },
   {
-    path: "/api/target/:target/my-scores",
-    target: "http://target:" + process.env.TARGET_PORT + "/:target/my-scores",
+    path: "/api/target/my-scores",
+    target: "http://target:" + process.env.TARGET_PORT + "/my-scores",
     auth: true,
+    authOrg: true,
     health: "http://target:" + process.env.TARGET_PORT + "/health",
   },
   {
-    path: "/api/target/photo/:photoId",
-    target: "http://target:" + process.env.TARGET_PORT + "/photo/:photoId",
+    path: "/api/target/photo",
+    target: "http://target:" + process.env.TARGET_PORT + "/photo",
     auth: true,
+    authOrg: true,
     health: "http://target:" + process.env.TARGET_PORT + "/health",
   },
 
-  // Read routes  
+  // Read routes
   {
     path: "/api/read/active-targets",
     target: "http://read:" + process.env.READ_PORT + "/active-targets",

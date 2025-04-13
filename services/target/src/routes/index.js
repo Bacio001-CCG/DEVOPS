@@ -15,10 +15,9 @@ const rabbitMQClient = new RabbitMQClient([
     function: async (msg) => {
       try {
         const { score, photoId } = JSON.parse(msg.content.toString());
-        await db.collection("photos").updateOne(
-          { _id: new ObjectId(photoId) },
-          { $set: { score } }
-        );
+        await db
+          .collection("photos")
+          .updateOne({ _id: new ObjectId(photoId) }, { $set: { score } });
         console.log(`Score ${score} saved for photo ${photoId}`);
       } catch (error) {
         console.error("Error saving score:", error);
@@ -43,9 +42,11 @@ const rabbitMQClient = new RabbitMQClient([
 
         await rabbitMQClient.send(
           "set_winner",
-          JSON.stringify({ targetId, highestScorer, score }),
+          JSON.stringify({ targetId, highestScorer, score })
         );
-        console.log(`Highest scorer for target ${targetId}: ${highestScorer}, with score: ${score}`);
+        console.log(
+          `Highest scorer for target ${targetId}: ${highestScorer}, with score: ${score}`
+        );
       } catch (error) {
         console.error("Error getting highest scorer:", error);
       }
@@ -56,10 +57,13 @@ const rabbitMQClient = new RabbitMQClient([
     consume: true,
     function: async (msg) => {
       const targetId = msg.content.toString();
-      const photos = await db.collection("photos").find({ target: targetId }).toArray();
+      const photos = await db
+        .collection("photos")
+        .find({ target: targetId })
+        .toArray();
       const replyTo = msg.properties.replyTo;
       const correlationId = msg.properties.correlationId;
-  
+
       rabbitMQClient.channel.sendToQueue(
         replyTo,
         Buffer.from(JSON.stringify(photos)),
@@ -84,16 +88,16 @@ const rabbitMQClient = new RabbitMQClient([
       const photo = await db
         .collection("photos")
         .findOne({ _id: new ObjectId(photoId) });
-  
+
       const replyTo = msg.properties.replyTo;
       const correlationId = msg.properties.correlationId;
-  
+
       await rabbitMQClient.channel.sendToQueue(
         replyTo,
         Buffer.from(JSON.stringify(photo ?? null)),
         { correlationId }
       );
-    }
+    },
   },
   {
     queue: "delete_photo_by_id",
@@ -102,16 +106,16 @@ const rabbitMQClient = new RabbitMQClient([
       const photoId = msg.content.toString();
       await db.collection("photos").deleteOne({ _id: new ObjectId(photoId) });
       console.log(`Photo ${photoId} deleted`);
-    }
+    },
   },
 ]);
 
-router.post("/:target/photo", async function (req, res) {
+router.post("/photo", async function (req, res) {
   try {
     const files = req.files;
     const formData = req.body;
-    const username = req.headers['x-user-username'];
-
+    const username = req.headers["x-user-username"];
+    const { target } = req.query;
     if (!files || Object.keys(files).length === 0) {
       return res.status(400).json({ message: "No files were uploaded." });
     }
@@ -123,7 +127,7 @@ router.post("/:target/photo", async function (req, res) {
       const photo = await db.collection("photos").insertOne({
         fileName: fileName,
         fileBase64: fileBase64,
-        target: req.params.target,
+        target: target,
         owner: username,
         score: null,
       });
@@ -131,7 +135,7 @@ router.post("/:target/photo", async function (req, res) {
       return rabbitMQClient.send(
         "score_photo",
         JSON.stringify({
-          target: req.params.target,
+          target: req.query.target,
           photo: fileBase64,
           photoId,
         })
@@ -151,11 +155,12 @@ router.post("/:target/photo", async function (req, res) {
   }
 });
 
-router.get("/:target/my-scores", async function (req, res) {
+router.get("/my-scores", async function (req, res) {
   try {
+    const { target } = req.query;
     const scores = await db
       .collection("photos")
-      .find({ target: req.params.target, owner: req.headers['x-user-username']})
+      .find({ target: target, owner: req.headers["x-user-username"] })
       .toArray();
 
     return res.status(200).json(scores);
@@ -167,11 +172,11 @@ router.get("/:target/my-scores", async function (req, res) {
   }
 });
 
-router.delete("/photo/:photoId", async (req, res) => {
+router.delete("/photo", async (req, res) => {
   try {
-    const photoId = req.params.photoId;
-    const username = req.headers['x-user-username'];
-    
+    const { photoId } = req.query;
+    const username = req.headers["x-user-username"];
+
     const photo = await db
       .collection("photos")
       .findOne({ _id: new ObjectId(photoId) });
@@ -186,9 +191,7 @@ router.delete("/photo/:photoId", async (req, res) => {
         .json({ message: "You can only delete your own photos" });
     }
 
-    await db
-      .collection("photos")
-      .deleteOne({ _id: new ObjectId(photoId) });
+    await db.collection("photos").deleteOne({ _id: new ObjectId(photoId) });
 
     return res.status(200).json({ message: "Photo deleted successfully" });
   } catch (err) {
@@ -198,6 +201,5 @@ router.delete("/photo/:photoId", async (req, res) => {
       .json({ message: err?.message ?? "Internal Server Error" });
   }
 });
-
 
 export default router;

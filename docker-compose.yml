@@ -9,15 +9,13 @@ services:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
       - NODE_ENV=development
-      - CLOCK_DB_URL=mongodb://clock-mongodb:27017?authSource=admin
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-      - JWT_SECRET=fi2idojiekgivkck2kjhi4
-      - CLOCK_PORT=2000
     volumes:
       - ./services/clock/src:/app/src
       - ./services/clock/package.json:/app/package.json
       - ./services/clock/package-lock.json:/app/package-lock.json
     stdin_open: true
+    env_file:
+      - .env
     networks:
       - clock
       - rabbitmq
@@ -35,17 +33,13 @@ services:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
       - NODE_ENV=development
-      - MAIL_DB_URL=mongodb://mail-mongodb:27017?authSource=admin
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-      - EMAIL_USER=casbackx@gmail.com
-      - EMAIL_PASS=xjnoztgiotsozvdl
-      - JWT_SECRET=fi2idojiekgivkck2kjhi4
-      - MAIL_PORT=2000
     volumes:
       - ./services/mail/src:/app/src
       - ./services/mail/package.json:/app/package.json
       - ./services/mail/package-lock.json:/app/package-lock.json
     stdin_open: true
+    env_file:
+      - .env
     networks:
       - mail
       - rabbitmq
@@ -63,15 +57,13 @@ services:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
       - NODE_ENV=development
-      - READ_DB_URL=mongodb://read-mongodb:27017?authSource=admin
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-      - JWT_SECRET=fi2idojiekgivkck2kjhi4
-      - READ_PORT=2000
     volumes:
       - ./services/read/src:/app/src
       - ./services/read/package.json:/app/package.json
       - ./services/read/package-lock.json:/app/package-lock.json
     stdin_open: true
+    env_file:
+      - .env
     networks:
       - read
       - rabbitmq    
@@ -89,15 +81,13 @@ services:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
       - NODE_ENV=development
-      - REGISTER_DB_URL=mongodb://register-mongodb:27017?authSource=admin
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-      - JWT_SECRET=fi2idojiekgivkck2kjhi4
-      - REGISTER_PORT=2000
     volumes:
       - ./services/register/src:/app/src
       - ./services/register/package.json:/app/package.json
       - ./services/register/package-lock.json:/app/package-lock.json
     stdin_open: true
+    env_file:
+      - .env
     networks:
       - register
       - rabbitmq
@@ -115,15 +105,13 @@ services:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
       - NODE_ENV=development
-      - SCORE_DB_URL=mongodb://score-mongodb:27017?authSource=admin
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-      - JWT_SECRET=fi2idojiekgivkck2kjhi4
-      - SCORE_PORT=2000
     volumes:
       - ./services/score/src:/app/src
       - ./services/score/package.json:/app/package.json
       - ./services/score/package-lock.json:/app/package-lock.json
     stdin_open: true
+    env_file:
+      - .env
     networks:
       - score
       - rabbitmq
@@ -141,11 +129,9 @@ services:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
       - NODE_ENV=development
-      - TARGET_DB_URL=mongodb://target-mongodb:27017?authSource=admin
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-      - JWT_SECRET=fi2idojiekgivkck2kjhi4
-      - TARGET_PORT=2000
     stdin_open: true
+    env_file:
+      - .env  
     volumes:
       - ./services/target/src:/app/src
       - ./services/target/package.json:/app/package.json
@@ -163,16 +149,13 @@ services:
     build:
       context: ./services/auth
       dockerfile: Dockerfile.dev
-    environment:
-      - AUTH_DB_URL=mongodb://auth-mongodb:27017?authSource=admin
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-      - JWT_SECRET=fi2idojiekgivkck2kjhi4
-      - AUTH_PORT=2000
     volumes:
       - ./services/auth/src:/app/src
       - ./services/auth/package.json:/app/package.json
       - ./services/auth/package-lock.json:/app/package-lock.json
     stdin_open: true
+    env_file:
+      - .env
     networks:
       - auth
       - rabbitmq
@@ -187,11 +170,7 @@ services:
       context: ./services/gateway
       dockerfile: Dockerfile.dev
     ports:
-      - "2000:2000"
-    environment:
-      - GATEWAY_DB_URL=mongodb://gateway-mongodb:27017?authSource=admin
-      - GATEWAY_PORT=2000
-      - JWT_SECRET=fi2idojiekgivkck2kjhi4
+      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
     volumes:
       - ./services/gateway/src:/app/src
       - ./services/gateway/package.json:/app/package.json
@@ -199,6 +178,8 @@ services:
       - ./services/gateway/routes.config.js:/app/routes.config.js
       - ./services/gateway/swagger.yaml:/app/swagger.yaml
     stdin_open: true
+    env_file:
+      - .env
     networks:
       - gateway
       - rabbitmq
@@ -224,42 +205,42 @@ services:
       retries: 5
       start_period: 40s
     environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     restart: always
     networks:
       - rabbitmq
 
   grafana:
-    image: grafana/grafana:11.5.2
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./grafana/config.ini:/etc/grafana/config.ini
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
-    networks:
-      - read
-      - register
-      - score
-      - target
-      - clock
-      - mail
-      - auth
-      - gateway
-    depends_on:
-      - prometheus
-    restart: unless-stopped
+      image: grafana/grafana:11.5.2
+      ports:
+        - "${GRAFANA_PORT}:3000"
+      environment:
+        - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+        - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+        - GF_USERS_ALLOW_SIGN_UP=false
+      volumes:
+        - grafana-data:/var/lib/grafana
+        - ./grafana/provisioning:/etc/grafana/provisioning
+        - ./grafana/config.ini:/etc/grafana/config.ini
+        - ./grafana/dashboards:/var/lib/grafana/dashboards
+      networks:
+        - read
+        - register
+        - score
+        - target
+        - clock
+        - mail
+        - auth
+        - gateway
+      depends_on:
+        - prometheus
+      restart: unless-stopped
 
   prometheus:
     image: prom/prometheus:v3.2.1
     ports:
-      - "9090:9090"
+      - "${PROMETHEUS_PORT:-9090}:9090"
     volumes:
       - ./prometheus:/etc/prometheus
       - prometheus:/prometheus
@@ -294,7 +275,7 @@ services:
     restart: always
     image: mongo:latest
     ports:
-      - "28017:27017"
+      - "${MONGO_AUTH_PORT}:27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -310,7 +291,7 @@ services:
     restart: always
     image: mongo:latest
     ports:
-      - "29017:27017"
+      - "${MONGO_MAIL_PORT}:27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -326,7 +307,7 @@ services:
     restart: always
     image: mongo:latest
     ports:
-      - "30017:27017"
+      - "${MONGO_CLOCK_PORT}:27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -342,7 +323,7 @@ services:
     restart: always
     image: mongo:latest
     ports:
-      - "31017:27017"
+      - "${MONGO_READ_PORT}:27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -358,7 +339,7 @@ services:
     restart: always
     image: mongo:latest
     ports:
-      - "32017:27017"
+      - "${MONGO_REGISTER_PORT}:27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -374,7 +355,7 @@ services:
     restart: always
     image: mongo:latest
     ports:
-      - "33017:27017"
+      - "${MONGO_SCORE_PORT}:27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -390,7 +371,7 @@ services:
     restart: always
     image: mongo:latest
     ports:
-      - "34017:27017"
+      - "${MONGO_TARGET_PORT}:27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -406,7 +387,7 @@ services:
     restart: always
     image: mongo:latest
     ports:
-      - "35017:27017"
+      - "${MONGO_GATEWAY_PORT}:27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -423,7 +404,7 @@ services:
   auth-mongodb-exporter:
     image: percona/mongodb_exporter:0.43.1
     environment:
-      - MONGODB_URI=mongodb://auth-mongodb:27017?authSource=admin
+      MONGODB_URI: ${AUTH_DB_URL}
     networks:
       - auth
     depends_on:
@@ -434,7 +415,7 @@ services:
   mail-mongodb-exporter:
     image: percona/mongodb_exporter:0.43.1
     environment:
-      - MONGODB_URI=mongodb://mail-mongodb:27017?authSource=admin
+      MONGODB_URI: ${MAIL_DB_URL}
     networks:
       - mail
     depends_on:
@@ -445,7 +426,7 @@ services:
   clock-mongodb-exporter:
     image: percona/mongodb_exporter:0.43.1
     environment:
-      - MONGODB_URI=mongodb://clock-mongodb:27017?authSource=admin
+      MONGODB_URI: ${CLOCK_DB_URL}
     networks:
       - clock
     depends_on:
@@ -456,7 +437,7 @@ services:
   read-mongodb-exporter:
     image: percona/mongodb_exporter:0.43.1
     environment:
-      - MONGODB_URI=mongodb://read-mongodb:27017?authSource=admin
+      MONGODB_URI: ${READ_DB_URL}
     networks:
       - read
     depends_on:
@@ -467,7 +448,7 @@ services:
   register-mongodb-exporter:
     image: percona/mongodb_exporter:0.43.1
     environment:
-      - MONGODB_URI=mongodb://register-mongodb:27017?authSource=admin
+      MONGODB_URI: ${REGISTER_DB_URL}
     networks:
       - register
     depends_on:
@@ -478,7 +459,7 @@ services:
   score-mongodb-exporter:
     image: percona/mongodb_exporter:0.43.1
     environment:
-      - MONGODB_URI=mongodb://score-mongodb:27017?authSource=admin
+      MONGODB_URI: ${SCORE_DB_URL}
     networks:
       - score
     depends_on:
@@ -489,7 +470,7 @@ services:
   target-mongodb-exporter:
     image: percona/mongodb_exporter:0.43.1
     environment:
-      - MONGODB_URI=mongodb://target-mongodb:27017?authSource=admin
+      MONGODB_URI: ${TARGET_DB_URL}
     networks:
       - target
     depends_on:
@@ -500,7 +481,7 @@ services:
   gateway-mongodb-exporter:
     image: percona/mongodb_exporter:0.43.1
     environment:
-      - MONGODB_URI=mongodb://gateway-mongodb:27017?authSource=admin
+      MONGODB_URI: ${GATEWAY_DB_URL}
     networks:
       - gateway
     depends_on:

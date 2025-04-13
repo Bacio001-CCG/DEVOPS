@@ -146,7 +146,7 @@ paths:
         "500":
           description: Internal server error
 
-  /api/register/target/{target}/results:
+  /api/register/target/results:
     get:
       summary: Get results for a specific target (user must be the target organizer)
       parameters:
@@ -163,7 +163,7 @@ paths:
         "500":
           description: Internal server error
 
-  /api/register/target/{target}:
+  /api/register/target:
     delete:
       summary: Delete a target and its associated photos (user must be the target organizer)
       parameters:
@@ -180,7 +180,7 @@ paths:
         "500":
           description: Internal server error
 
-  /api/register/target/{target}/photo/{photoId}:
+  /api/register/target/photo:
     delete:
       summary: Delete a specific photo from a target (user must be the target organizer)
       parameters:
@@ -208,7 +208,7 @@ paths:
   # Target Service
   ####################################################
 
-  /api/target/{target}/photo:
+  /api/target/photo:
     post:
       summary: Upload a photo for a target
       parameters:
@@ -237,7 +237,7 @@ paths:
         "500":
           description: Internal server error
 
-  /api/target/{target}/my-scores:
+  /api/target/my-scores:
     get:
       summary: Get scores for the current user's photos in a target
       parameters:
@@ -252,7 +252,7 @@ paths:
         "500":
           description: Internal server error
 
-  /api/target/photo/{photoId}:
+  /api/target/photo:
     delete:
       summary: Delete a photo by ID (user must be the owner)
       parameters:

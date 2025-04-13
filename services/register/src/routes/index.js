@@ -15,8 +15,8 @@ router.post("/", async function (req, res) {
     const location = formData.location;
     const date = formData.date;
     const time = formData.time;
-    const username = req.headers['x-user-username'];
-    const email = req.headers['x-user-email'];
+    const username = req.headers["x-user-username"];
+    const email = req.headers["x-user-email"];
     const target = Math.random().toString(36).substring(2, 15);
 
     const originalDate = new Date(`${date}T${time}`);
@@ -45,7 +45,7 @@ router.post("/", async function (req, res) {
         description: description,
         location: location,
         endTime: dateTime,
-        startTime: new Date().toISOString(),        
+        startTime: new Date().toISOString(),
         winner: null,
         score: null,
         isEnded: false,
@@ -64,20 +64,23 @@ router.post("/", async function (req, res) {
 
     return res.status(200).json({
       message: "Photos received and saved, TargetId: " + target,
-      formData: formData,      
+      formData: formData,
     });
   } catch (err) {
     return res.status(500).json(err?.message ?? "Internal Server Error");
   }
 });
 
-router.get("/target/:target/results", async function (req, res) {
+router.get("/target/results", async function (req, res) {
   try {
-    const { target } = req.params;
-    const username = req.headers['x-user-username'];
+    const { target } = req.query;
+    console.log("Target:", target);
+    const username = req.headers["x-user-username"];
 
     // Check ownership
-    const targetDoc = await db.collection("registration").findOne({ target, owner: username });
+    const targetDoc = await db
+      .collection("registration")
+      .findOne({ target, owner: username });
     if (!targetDoc) {
       return res.status(403).json({ message: "Unauthorized access to target" });
     }
@@ -89,17 +92,21 @@ router.get("/target/:target/results", async function (req, res) {
     return res.status(200).json(sorted);
   } catch (err) {
     console.error("Error fetching target results:", err);
-    return res.status(500).json({ message: err?.message ?? "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ message: err?.message ?? "Internal Server Error" });
   }
 });
 
-router.delete("/target/:target", async function (req, res) {
+router.delete("/target", async function (req, res) {
   try {
-    const { target } = req.params;
-    const username = req.headers['x-user-username'];
+    const { target } = req.query;
+    const username = req.headers["x-user-username"];
 
     // Check ownership
-    const targetDoc = await db.collection("registration").findOne({ target, owner: username });
+    const targetDoc = await db
+      .collection("registration")
+      .findOne({ target, owner: username });
     if (!targetDoc) {
       return res.status(403).json({ message: "Unauthorized access to target" });
     }
@@ -110,20 +117,26 @@ router.delete("/target/:target", async function (req, res) {
     // Instruct target service to delete photos by target
     await rabbitMQClient.send("delete_photos_by_target", target);
 
-    return res.status(200).json({ message: "Target and associated photos deleted" });
+    return res
+      .status(200)
+      .json({ message: "Target and associated photos deleted" });
   } catch (err) {
     console.error("Error deleting target:", err);
-    return res.status(500).json({ message: err?.message ?? "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ message: err?.message ?? "Internal Server Error" });
   }
 });
 
-router.delete("/target/:target/photo/:photoId", async function (req, res) {
+router.delete("/target/photo", async function (req, res) {
   try {
-    const { target, photoId } = req.params;
-    const username = req.headers['x-user-username'];
+    const { target, photoId } = req.query;
+    const username = req.headers["x-user-username"];
 
     // Check ownership
-    const targetDoc = await db.collection("registration").findOne({ target, owner: username });
+    const targetDoc = await db
+      .collection("registration")
+      .findOne({ target, owner: username });
     if (!targetDoc) {
       return res.status(403).json({ message: "You do not own this target" });
     }
@@ -135,7 +148,9 @@ router.delete("/target/:target/photo/:photoId", async function (req, res) {
     }
 
     if (photo.target !== target) {
-      return res.status(400).json({ message: "Photo does not belong to this target" });
+      return res
+        .status(400)
+        .json({ message: "Photo does not belong to this target" });
     }
 
     //Request deletion from target service
@@ -144,9 +159,10 @@ router.delete("/target/:target/photo/:photoId", async function (req, res) {
     return res.status(200).json({ message: "Photo deleted successfully" });
   } catch (err) {
     console.error("Error deleting photo:", err);
-    return res.status(500).json({ message: err?.message ?? "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ message: err?.message ?? "Internal Server Error" });
   }
 });
-
 
 export default router;
