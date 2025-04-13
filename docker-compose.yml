@@ -237,7 +237,6 @@ services:
       depends_on:
         - prometheus
       restart: unless-stopped
-      attach: false
 
   prometheus:
     image: prom/prometheus:v3.2.1
