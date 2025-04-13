@@ -9,5 +9,7 @@ export default [
     path: "/api/register",
     target: "http://register:" + process.env.REGISTER_PORT,
     auth: true,
-  },
+    authOrg: true,
+    health: "http://register:" + process.env.REGISTER_PORT + "/health",
+  },  
 ];

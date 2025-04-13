@@ -40,9 +40,9 @@ router.post("/register", async function (req, res) {
     const role = organizer ? "organizer" : "participant";
 
     const userResult = await db.collection("users").insertOne({
-      email,
       username,
       password: hashedPassword,
+      email: email,
       role,
     });
 

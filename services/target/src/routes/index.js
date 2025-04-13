@@ -4,8 +4,6 @@ import { ObjectId } from "mongodb";
 const router = express.Router();
 import RabbitMQClient from "../rabbitmq.js";
 
-import { authenticateJWT } from "../middleware/auth.js";
-
 const rabbitMQClient = new RabbitMQClient([
   {
     queue: "score_photo",
@@ -186,7 +184,7 @@ router.get("/:target/photos", async function (req, res) {
  *       500:
  *         description: Server error
  */
-router.post("/:target/photo", authenticateJWT, async function (req, res) {
+router.post("/:target/photo", async function (req, res) {
   try {
     const files = req.files;
     const formData = req.body;
@@ -231,7 +229,7 @@ router.post("/:target/photo", authenticateJWT, async function (req, res) {
   }
 });
 
-router.get("/:target/myScores", authenticateJWT, async function (req, res) {
+router.get("/:target/myScores", async function (req, res) {
   try {
     const scores = await db
       .collection("photos")
@@ -247,7 +245,7 @@ router.get("/:target/myScores", authenticateJWT, async function (req, res) {
   }
 });
 
-router.delete("/photo/:photoId", authenticateJWT, async (req, res) => {
+router.delete("/photo/:photoId", async (req, res) => {
   try {
     const photoId = req.params.photoId;
     const username = req.user.username;
