@@ -258,7 +258,6 @@ services:
       - clock
       - mail
       - auth
-      - rabbitmq
       - gateway
     restart: unless-stopped
     depends_on:
@@ -269,7 +268,6 @@ services:
       - clock
       - mail
       - auth
-      - rabbitmq
       - gateway
 
 # ----------------------------------- DATABASE -----------------------------------
