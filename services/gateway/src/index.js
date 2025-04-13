@@ -12,6 +12,7 @@ import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { register, httpRequestDuration } from "./prometheus.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,6 +23,10 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 app.use(morgan("combined"));
+app.listen(process.env.GATEWAY_PORT, "0.0.0.0", () => {
+  console.log(`Server is running on port ${process.env.GATEWAY_PORT}`);
+});
+
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 const circuitBreakerOptions = {
@@ -87,10 +92,22 @@ routes.forEach((route) => {
   });
 });
 
-const PORT = process.env.PORT || 5008;
+// Metrics endpoint for prometheus
+app.get("/metrics", async (req, res) => {
+  res.setHeader("Content-Type", register.contentType);
+  res.send(await register.metrics());
+});
 
-app.listen(PORT, () => {
-  console.log(`API Gateway is running on port ${PORT}`);
+// Health check for prometheus
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    httpRequestDuration
+      .labels(req.method, req.route?.path || req.path, res.statusCode)
+      .observe(duration / 1000);
+  });
+  next();
 });
 
 export default app;

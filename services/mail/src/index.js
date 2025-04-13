@@ -1,7 +1,8 @@
 import "dotenv/config";
 import express from "express";
 import nodemailer from "nodemailer";
-import RabbitMQClient from "./rabbitmq.js"
+import RabbitMQClient from "./rabbitmq.js";
+import { register, httpRequestDuration } from "./prometheus.js";
 
 const app = express();
 
@@ -16,8 +17,8 @@ const transporter = nodemailer.createTransport({
 });
 
 app.use(express.json());
-app.listen(process.env.PORT, () => {
-  console.log(`Server is running on port ${process.env.PORT}`);
+app.listen(process.env.MAIL_PORT, "0.0.0.0", () => {
+  console.log(`Server is running on port ${process.env.MAIL_PORT}`);
 });
 
 new RabbitMQClient([
@@ -62,6 +63,24 @@ app.post("/", () => {
       console.log("Email sent: " + info.response);
     }
   });
+});
+
+// Metrics endpoint for prometheus
+app.get("/metrics", async (req, res) => {
+  res.setHeader("Content-Type", register.contentType);
+  res.send(await register.metrics());
+});
+
+// Health check for prometheus
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    httpRequestDuration
+      .labels(req.method, req.route?.path || req.path, res.statusCode)
+      .observe(duration / 1000);
+  });
+  next();
 });
 
 // Health check for gateway

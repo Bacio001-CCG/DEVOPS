@@ -1,11 +1,10 @@
 import "dotenv/config";
 import express from "express";
 import fileUpload from "express-fileupload";
-
 import routes from "./routes/index.js";
-
 import RabbitMQClient from "./rabbitmq.js";
 import { db } from "./database.js";
+import { register, httpRequestDuration } from "./prometheus.js";
 
 const rabbitMQClient = new RabbitMQClient([
   {
@@ -68,8 +67,8 @@ const rabbitMQClient = new RabbitMQClient([
     queue: "end_target",
     consume: true,
     function: async (msg) => {
-      try {             
-      const targetId = JSON.parse(msg.content.toString()); 
+      try {
+        const targetId = JSON.parse(msg.content.toString());
 
         if (!targetId) {
           console.warn("No targetId provided in message");
@@ -82,33 +81,38 @@ const rabbitMQClient = new RabbitMQClient([
           JSON.stringify(targetId)
         );
 
-        await db.collection("registration").updateMany(
-          { target: targetId },
-          { $set: { isEnded: true } }
-        );
+        await db
+          .collection("registration")
+          .updateMany({ target: targetId }, { $set: { isEnded: true } });
       } catch (err) {
         console.error("Error handling target end", err);
       }
     },
-  },  
+  },
   {
     queue: "set_winner",
     consume: true,
     function: async (msg) => {
-      try {              
-        const { targetId, highestScorer, score} = JSON.parse(msg.content.toString()); 
+      try {
+        const { targetId, highestScorer, score } = JSON.parse(
+          msg.content.toString()
+        );
 
         if (!targetId) {
           console.warn("No targetId provided in message");
           return;
         }
 
-        await db.collection("registration").updateMany(
-          { target: targetId },
-          { $set: { winner: highestScorer, score} }
-        );
+        await db
+          .collection("registration")
+          .updateMany(
+            { target: targetId },
+            { $set: { winner: highestScorer, score } }
+          );
 
-        const registration = await db.collection("registration").findOne({ target: targetId });
+        const registration = await db
+          .collection("registration")
+          .findOne({ target: targetId });
 
         if (!registration || !registration.ownerEmail) {
           console.warn("Owner email not found for target", targetId);
@@ -117,7 +121,7 @@ const rabbitMQClient = new RabbitMQClient([
 
         const userEmail = registration.ownerEmail;
         const title = registration.title || "your target";
-        
+
         await rabbitMQClient.send(
           "send_email",
           JSON.stringify({
@@ -127,7 +131,9 @@ const rabbitMQClient = new RabbitMQClient([
           })
         );
 
-        console.log(`Target ${targetId} ended with winner: ${highestScorer} and score: ${score}`);
+        console.log(
+          `Target ${targetId} ended with winner: ${highestScorer} and score: ${score}`
+        );
       } catch (err) {
         console.error("Error handling target end", err);
       }
@@ -140,30 +146,30 @@ const rabbitMQClient = new RabbitMQClient([
       try {
         const { replyTo, correlationId } = msg.properties;
         const { isEnded } = JSON.parse(msg.content.toString());
-  
+
         const result = await getAllTargets(isEnded); // This is your existing function
-  
+
         if (replyTo) {
           await rabbitMQClient.channel.sendToQueue(
             replyTo,
             Buffer.from(JSON.stringify(result)),
             { correlationId }
           );
-          console.log(`Sent ${isEnded ? "ended" : "active"} targets to read service`);
+          console.log(
+            `Sent ${isEnded ? "ended" : "active"} targets to read service`
+          );
         }
       } catch (err) {
         console.error("Error fetching targets:", err);
         if (msg.properties.replyTo) {
           await rabbitMQClient.channel.sendToQueue(
             msg.properties.replyTo,
-            Buffer.from(
-              JSON.stringify({ error: err.message, success: false })
-            ),
+            Buffer.from(JSON.stringify({ error: err.message, success: false })),
             { correlationId: msg.properties.correlationId }
           );
         }
       }
-    }
+    },
   },
 ]);
 
@@ -177,21 +183,11 @@ app.use(
     limits: { fileSize: 50 * 1024 * 1024 },
   })
 );
+app.listen(process.env.REGISTER_PORT, "0.0.0.0", () => {
+  console.log(`Server is running on port ${process.env.REGISTER_PORT}`);
+});
 
 app.use("/", routes);
-
-// Health check for gateway
-app.use((req, res, next) => {
-  if (req.method === "HEAD") {
-    res.status(200).end();
-  } else {
-    next();
-  }
-});
-
-app.listen(process.env.PORT, () => {
-  console.log(`Server is running on port ${process.env.PORT}`);
-});
 
 export const getAllTargets = async (getEndedTargets) => {
   try {
@@ -203,7 +199,7 @@ export const getAllTargets = async (getEndedTargets) => {
       .sort({ endTime: sortOrder })
       .toArray();
 
-    const orderedResults = results.map(target => {
+    const orderedResults = results.map((target) => {
       const base = {
         title: target.title,
         target: target.target,
@@ -231,5 +227,32 @@ export const getAllTargets = async (getEndedTargets) => {
     throw err;
   }
 };
+
+// Metrics endpoint for prometheus
+app.get("/metrics", async (req, res) => {
+  res.setHeader("Content-Type", register.contentType);
+  res.send(await register.metrics());
+});
+
+// Health check for prometheus
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    httpRequestDuration
+      .labels(req.method, req.route?.path || req.path, res.statusCode)
+      .observe(duration / 1000);
+  });
+  next();
+});
+
+// Health check for gateway
+app.use((req, res, next) => {
+  if (req.method === "HEAD") {
+    res.status(200).end();
+  } else {
+    next();
+  }
+});
 
 export default app;

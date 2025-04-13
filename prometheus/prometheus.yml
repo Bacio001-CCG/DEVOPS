@@ -1,0 +1,72 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: "gateway"
+    static_configs:
+      - targets: ["gateway:5000"]
+
+  - job_name: "auth"
+    static_configs:
+      - targets: ["auth:5000"]
+
+  - job_name: "target"
+    static_configs:
+      - targets: ["target:5000"]
+
+  - job_name: "score"
+    static_configs:
+      - targets: ["score:5000"]
+
+  - job_name: "register"
+    static_configs:
+      - targets: ["register:5000"]
+
+  - job_name: "read"
+    static_configs:
+      - targets: ["read:5000"]
+
+  - job_name: "mail"
+    static_configs:
+      - targets: ["mail:5000"]
+
+  - job_name: "clock"
+    static_configs:
+      - targets: ["clock:5000"]
+
+  - job_name: "auth-mongodb"
+    static_configs:
+      - targets: ["auth-mongodb-exporter:9216"]
+
+  - job_name: "mail-mongodb"
+    static_configs:
+      - targets: ["mail-mongodb-exporter:9216"]
+
+  - job_name: "clock-mongodb"
+    static_configs:
+      - targets: ["clock-mongodb-exporter:9216"]
+
+  - job_name: "read-mongodb"
+    static_configs:
+      - targets: ["read-mongodb-exporter:9216"]
+
+  - job_name: "register-mongodb"
+    static_configs:
+      - targets: ["register-mongodb-exporter:9216"]
+
+  - job_name: "score-mongodb"
+    static_configs:
+      - targets: ["score-mongodb-exporter:9216"]
+
+  - job_name: "target-mongodb"
+    static_configs:
+      - targets: ["target-mongodb-exporter:9216"]
+
+  - job_name: "gateway-mongodb"
+    static_configs:
+      - targets: ["gateway-mongodb-exporter:9216"]
