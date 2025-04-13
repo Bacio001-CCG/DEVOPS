@@ -45,22 +45,22 @@ export default [
 
   // Target routes
   {
-    path: "/api/photo/:target/photo",
-    target: "http://photo:" + process.env.PHOTO_PORT + "/:target/photo",
+    path: "/api/target/:target/photo",
+    target: "http://target:" + process.env.TARGET_PORT + "/:target/photo",
     auth: true,
-    health: "http://photo:" + process.env.PHOTO_PORT + "/health",
+    health: "http://target:" + process.env.TARGET_PORT + "/health",
   },
   {
-    path: "/api/photo/:target/myScores",
-    target: "http://photo:" + process.env.PHOTO_PORT + "/:target/myScores",
+    path: "/api/target/:target/my-scores",
+    target: "http://target:" + process.env.TARGET_PORT + "/:target/my-scores",
     auth: true,
-    health: "http://photo:" + process.env.PHOTO_PORT + "/health",
+    health: "http://target:" + process.env.TARGET_PORT + "/health",
   },
   {
-    path: "/api/photo/photo/:photoId",
-    target: "http://photo:" + process.env.PHOTO_PORT + "/photo/:photoId",
+    path: "/api/target/photo/:photoId",
+    target: "http://target:" + process.env.TARGET_PORT + "/photo/:photoId",
     auth: true,
-    health: "http://photo:" + process.env.PHOTO_PORT + "/health",
+    health: "http://target:" + process.env.TARGET_PORT + "/health",
   },
 
   // Read routes  
