@@ -106,52 +106,6 @@ const rabbitMQClient = new RabbitMQClient([
   },
 ]);
 
-// const testFunction = async (msg) => {
-//   console.log("Received:", msg.content.toString());
-// };
-
-/**
- * @swagger
- * /{target}/photos:
- *   get:
- *     tags:
- *       - Photos
- *     summary: Get a target's photos
- *     description: Retrieves all photos associated with a specific target
- *     parameters:
- *       - in: path
- *         name: target
- *         required: true
- *         description: Target identifier
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: List of photos
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *       500:
- *         description: Server error
- */
-router.get("/:target/photos", async function (req, res) {
-  try {
-    // Connect to RabbitMQ
-    // rabbitMQClient.send("test", "Hello World!");
-
-    // Change the response to verify code update is working
-    const list = [1, 3, 5, 7, 9]; // Changed values
-
-    return res.status(200).json(list);
-  } catch (err) {
-    return res
-      .status(500)
-      .json({ message: err?.message ?? "Internal Server Error" });
-  }
-});
-
-// Use authenticateOrganizerJWT if you want to restrict this route to users with role organizers only
 /**
  * @swagger
  * /{target}/photo:
@@ -188,7 +142,7 @@ router.post("/:target/photo", async function (req, res) {
   try {
     const files = req.files;
     const formData = req.body;
-    const username = req.user.username;
+    const username = req.headers['x-user-username'];
 
     if (!files || Object.keys(files).length === 0) {
       return res.status(400).json({ message: "No files were uploaded." });
