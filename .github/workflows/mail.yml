@@ -1,0 +1,37 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: ["development"]
+  pull_request:
+    branches: ["development", "main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [23.x]
+        folder: ["services/mail"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Mail Service
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies and run tests for ${{ matrix.folder }}
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Contents of current folder:"
+          ls -la ${{ matrix.folder }}
+          cd ${{ matrix.folder }}
+          echo "Installing dependencies in ${{ matrix.folder }}..."
+          npm install
+          echo "Running tests in ${{ matrix.folder }}..."
+          npm run test
+          echo "Running linter in ${{ matrix.folder }}..."
+          npm run lint
