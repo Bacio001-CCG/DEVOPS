@@ -167,6 +167,8 @@ services:
     build:
       context: ./services/gateway
       dockerfile: Dockerfile.dev
+    ports:      
+      - ${GATEWAY_PORT}:5008
     volumes:
       - ./services/gateway/src:/app/src
       - ./services/gateway/package.json:/app/package.json

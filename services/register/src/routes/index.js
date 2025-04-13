@@ -1,6 +1,5 @@
 import express from "express";
 import { db } from "../database.js";
-import { authenticateJWT } from "../middleware/auth.js";
 import RabbitMQClient from "../rabbitmq.js";
 
 const router = express.Router();
@@ -18,7 +17,7 @@ router.get("/", async function (req, res) {
   }
 });
 
-router.post("/", authenticateJWT, async function (req, res) {
+router.post("/", async function (req, res) {
   try {
     const files = req.files;
     const formData = req.body;
@@ -27,8 +26,10 @@ router.post("/", authenticateJWT, async function (req, res) {
     const location = formData.location;
     const date = formData.date;
     const time = formData.time;
-    const username = req.user.username;    
-    const email = req.user.email;
+    const username = req.headers['x-user-username'];
+    const email = req.headers['x-user-email'];
+    console.log("Username from headers:", username);
+    console.log("Email from headers:", email);
     const target = Math.random().toString(36).substring(2, 15);
 
     const originalDate = new Date(`${date}T${time}`);
@@ -83,7 +84,7 @@ router.post("/", authenticateJWT, async function (req, res) {
   }
 });
 
-router.get("/target/:target/results", authenticateJWT, async function (req, res) {
+router.get("/target/:target/results", async function (req, res) {
   try {
     const { target } = req.params;
     const username = req.user.username;
@@ -105,7 +106,7 @@ router.get("/target/:target/results", authenticateJWT, async function (req, res)
   }
 });
 
-router.delete("/target/:target", authenticateJWT, async function (req, res) {
+router.delete("/target/:target", async function (req, res) {
   try {
     const { target } = req.params;
     const username = req.user.username;
@@ -129,7 +130,7 @@ router.delete("/target/:target", authenticateJWT, async function (req, res) {
   }
 });
 
-router.delete("/target/:target/photo/:photoId", authenticateJWT, async function (req, res) {
+router.delete("/target/:target/photo/:photoId", async function (req, res) {
   try {
     const { target, photoId } = req.params;
     const username = req.user.username;
