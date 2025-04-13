@@ -1,6 +1,5 @@
 import express from "express";
 import { db } from "../database.js";
-import passport from "../config/passport.js";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
