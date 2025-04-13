@@ -27,7 +27,6 @@ async function calculateScore(msg) {
     JSON.stringify({ target })
   );
 
-  console.log(target);
   const base64Target = response.fileBase64;
   const base64Photo = photo;
 
@@ -66,7 +65,7 @@ async function calculateScore(msg) {
     // Send back the score
     await rabbitMQClient.send(
       "score_result",
-      JSON.stringify({score: similarityScore, photoId})
+      JSON.stringify({ score: similarityScore, photoId })
     );
   } catch (error) {
     console.error("Error calculating score:", error);

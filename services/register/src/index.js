@@ -75,7 +75,6 @@ const rabbitMQClient = new RabbitMQClient([
           return;
         }
 
-        console.log("send mq");
         await rabbitMQClient.send(
           "get_highest_scorer",
           JSON.stringify(targetId)

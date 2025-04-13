@@ -74,7 +74,6 @@ router.post("/", async function (req, res) {
 router.get("/target/results", async function (req, res) {
   try {
     const { target } = req.query;
-    console.log("Target:", target);
     const username = req.headers["x-user-username"];
 
     // Check ownership
