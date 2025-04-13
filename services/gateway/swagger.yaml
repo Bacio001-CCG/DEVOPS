@@ -1,0 +1,300 @@
+openapi: 3.0.0
+info:
+  title: API Gateway
+  description: API Gateway for microservices
+  version: 1.0.0
+servers:
+  - url: http://localhost:2000
+    description: Local development server
+
+paths:
+  ####################################################
+  # Auth Service
+  ####################################################
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user and sends login credentials via email.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - username
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                username:
+                  type: string
+                  example: johndoe
+                organizer:
+                  type: boolean
+                  default: false
+                  example: true
+      responses:
+        "201":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  token:
+                    type: string
+        "400":
+          description: Missing or invalid input
+        "500":
+          description: Server error
+
+  /api/auth/login:
+    post:
+      summary: Login a user
+      description: Authenticates user and returns a JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                password:
+                  type: string
+                  example: secret123
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  token:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      username:
+                        type: string
+                      role:
+                        type: string
+                      email:
+                        type: string
+        "400":
+          description: Missing credentials
+        "401":
+          description: Invalid username or password
+        "500":
+          description: Server error
+
+  ####################################################
+  # Register Service
+  ####################################################
+  /api/register:
+    post:
+      summary: Register a new event with photo upload
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - title
+                - description
+                - location
+                - date
+                - time
+                - file
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                location:
+                  type: string
+                date:
+                  type: string
+                  format: date
+                time:
+                  type: string
+                  format: time
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Event registered successfully
+        "400":
+          description: Missing fields or files
+        "500":
+          description: Internal server error
+
+  /api/register/target/results:
+    get:
+      summary: Get results for a specific target (user must be the target organizer)
+      parameters:
+        - in: path
+          name: target
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Sorted list of photos
+        "403":
+          description: Unauthorized access
+        "500":
+          description: Internal server error
+
+  /api/register/target:
+    delete:
+      summary: Delete a target and its associated photos (user must be the target organizer)
+      parameters:
+        - in: path
+          name: target
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Target deleted
+        "403":
+          description: Unauthorized access
+        "500":
+          description: Internal server error
+
+  /api/register/target/photo:
+    delete:
+      summary: Delete a specific photo from a target (user must be the target organizer)
+      parameters:
+        - in: path
+          name: target
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: photoId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Photo deleted
+        "403":
+          description: Unauthorized
+        "404":
+          description: Photo not found
+        "500":
+          description: Internal server error
+
+  ####################################################
+  # Target Service
+  ####################################################
+
+  /api/target/photo:
+    post:
+      summary: Upload a photo for a target
+      parameters:
+        - in: path
+          name: target
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Photo uploaded successfully
+        "400":
+          description: No file uploaded
+        "500":
+          description: Internal server error
+
+  /api/target/my-scores:
+    get:
+      summary: Get scores for the current user's photos in a target
+      parameters:
+        - in: path
+          name: target
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User scores returned
+        "500":
+          description: Internal server error
+
+  /api/target/photo:
+    delete:
+      summary: Delete a photo by ID (user must be the owner)
+      parameters:
+        - in: path
+          name: photoId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Photo deleted successfully
+        "403":
+          description: Unauthorized to delete
+        "404":
+          description: Photo not found
+        "500":
+          description: Internal server error
+
+  ####################################################
+  # Read Service
+  ####################################################
+  /api/read/active-targets:
+    get:
+      summary: Get active (ongoing) targets
+      responses:
+        "200":
+          description: List of active targets
+        "500":
+          description: Internal server error
+
+  /api/read/ended-targets:
+    get:
+      summary: Get ended (completed) targets
+      responses:
+        "200":
+          description: List of ended targets
+        "500":
+          description: Internal server error
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

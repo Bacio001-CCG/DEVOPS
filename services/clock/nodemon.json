@@ -1,0 +1,14 @@
+{
+  "watch": [
+    "src/**"
+  ],
+  "ext": "js,json",
+  "ignore": [
+    "node_modules"
+  ],
+  "legacyWatch": true,
+  "polling": true,
+  "verbose": true,
+  "delay": 1000,
+  "restartable": "rs"
+}

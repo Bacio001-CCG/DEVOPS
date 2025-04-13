@@ -1,0 +1,526 @@
+services:
+# ----------------------------------- MICRO SERVICES -----------------------------------
+
+  clock:
+    build:
+      context: ./services/clock
+      dockerfile: Dockerfile.dev
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+    volumes:
+      - ./services/clock/src:/app/src
+      - ./services/clock/package.json:/app/package.json
+      - ./services/clock/package-lock.json:/app/package-lock.json
+    stdin_open: true
+    env_file:
+      - .env
+    networks:
+      - clock
+      - rabbitmq
+    depends_on:
+      clock-mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  mail:
+    build:
+      context: ./services/mail
+      dockerfile: Dockerfile.dev
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+    volumes:
+      - ./services/mail/src:/app/src
+      - ./services/mail/package.json:/app/package.json
+      - ./services/mail/package-lock.json:/app/package-lock.json
+    stdin_open: true
+    env_file:
+      - .env
+    networks:
+      - mail
+      - rabbitmq
+    depends_on:    
+      mail-mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  read:
+    build:
+      context: ./services/read
+      dockerfile: Dockerfile.dev
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+    volumes:
+      - ./services/read/src:/app/src
+      - ./services/read/package.json:/app/package.json
+      - ./services/read/package-lock.json:/app/package-lock.json
+    stdin_open: true
+    env_file:
+      - .env
+    networks:
+      - read
+      - rabbitmq    
+    depends_on:    
+      read-mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  register:
+    build:
+      context: ./services/register
+      dockerfile: Dockerfile.dev
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+    volumes:
+      - ./services/register/src:/app/src
+      - ./services/register/package.json:/app/package.json
+      - ./services/register/package-lock.json:/app/package-lock.json
+    stdin_open: true
+    env_file:
+      - .env
+    networks:
+      - register
+      - rabbitmq
+    depends_on:    
+      register-mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  score:
+    build:
+      context: ./services/score
+      dockerfile: Dockerfile.dev
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+    volumes:
+      - ./services/score/src:/app/src
+      - ./services/score/package.json:/app/package.json
+      - ./services/score/package-lock.json:/app/package-lock.json
+    stdin_open: true
+    env_file:
+      - .env
+    networks:
+      - score
+      - rabbitmq
+    depends_on:
+      score-mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  target:
+    build:
+      context: ./services/target
+      dockerfile: Dockerfile.dev
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+    stdin_open: true
+    env_file:
+      - .env  
+    volumes:
+      - ./services/target/src:/app/src
+      - ./services/target/package.json:/app/package.json
+      - ./services/target/package-lock.json:/app/package-lock.json
+    networks:
+      - target
+      - rabbitmq
+    depends_on:
+      target-mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+  
+  auth:
+    build:
+      context: ./services/auth
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./services/auth/src:/app/src
+      - ./services/auth/package.json:/app/package.json
+      - ./services/auth/package-lock.json:/app/package-lock.json
+    stdin_open: true
+    env_file:
+      - .env
+    networks:
+      - auth
+      - rabbitmq
+    depends_on:
+      auth-mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  gateway:
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile.dev
+    ports:
+      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+    volumes:
+      - ./services/gateway/src:/app/src
+      - ./services/gateway/package.json:/app/package.json
+      - ./services/gateway/package-lock.json:/app/package-lock.json
+      - ./services/gateway/routes.config.js:/app/routes.config.js
+      - ./services/gateway/swagger.yaml:/app/swagger.yaml
+    stdin_open: true
+    env_file:
+      - .env
+    networks:
+      - gateway
+      - rabbitmq
+      - auth
+      - mail
+      - clock
+      - read
+      - register
+      - score
+      - target
+    depends_on:
+      gateway-mongodb:
+        condition: service_healthy
+
+# ----------------------------------- EXTERNAL SERVICES -----------------------------------
+
+  rabbitmq:
+    image: rabbitmq:4.0.7
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    restart: always
+    networks:
+      - rabbitmq
+
+  grafana:
+      image: grafana/grafana:11.5.2
+      ports:
+        - "${GRAFANA_PORT}:3000"
+      environment:
+        - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+        - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+        - GF_USERS_ALLOW_SIGN_UP=false
+      volumes:
+        - grafana-data:/var/lib/grafana
+        - ./grafana/provisioning:/etc/grafana/provisioning
+        - ./grafana/config.ini:/etc/grafana/config.ini
+        - ./grafana/dashboards:/var/lib/grafana/dashboards
+      networks:
+        - read
+        - register
+        - score
+        - target
+        - clock
+        - mail
+        - auth
+        - gateway
+      depends_on:
+        - prometheus
+      restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - read
+      - register
+      - score
+      - target
+      - clock
+      - mail
+      - auth
+      - gateway
+    restart: unless-stopped
+    depends_on:
+      - read
+      - register
+      - score
+      - target
+      - clock
+      - mail
+      - auth
+      - gateway
+
+# ----------------------------------- DATABASE -----------------------------------
+
+  auth-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "${MONGO_AUTH_PORT}:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - auth-mongodb-data:/data/db
+    networks:
+      - auth
+
+  mail-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "${MONGO_MAIL_PORT}:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - mail-mongodb-data:/data/db
+    networks:
+      - mail
+
+  clock-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "${MONGO_CLOCK_PORT}:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - clock-mongodb-data:/data/db
+    networks:
+      - clock
+
+  read-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "${MONGO_READ_PORT}:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - read-mongodb-data:/data/db
+    networks:
+      - read
+
+  register-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "${MONGO_REGISTER_PORT}:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - register-mongodb-data:/data/db
+    networks:
+      - register
+
+  score-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "${MONGO_SCORE_PORT}:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - score-mongodb-data:/data/db
+    networks:
+      - score
+
+  target-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "${MONGO_TARGET_PORT}:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - target-mongodb-data:/data/db
+    networks:
+      - target
+
+  gateway-mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "${MONGO_GATEWAY_PORT}:27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - gateway-mongodb-data:/data/db
+    networks:
+      - gateway
+
+# ----------------------------------- EXPORTS -----------------------------------
+
+  auth-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      MONGODB_URI: ${AUTH_DB_URL}
+    networks:
+      - auth
+    depends_on:
+      auth-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mail-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      MONGODB_URI: ${MAIL_DB_URL}
+    networks:
+      - mail
+    depends_on:
+      mail-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  clock-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      MONGODB_URI: ${CLOCK_DB_URL}
+    networks:
+      - clock
+    depends_on:
+      clock-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  read-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      MONGODB_URI: ${READ_DB_URL}
+    networks:
+      - read
+    depends_on:
+      read-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  register-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      MONGODB_URI: ${REGISTER_DB_URL}
+    networks:
+      - register
+    depends_on:
+      register-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  score-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      MONGODB_URI: ${SCORE_DB_URL}
+    networks:
+      - score
+    depends_on:
+      score-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  target-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      MONGODB_URI: ${TARGET_DB_URL}
+    networks:
+      - target
+    depends_on:
+      target-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  gateway-mongodb-exporter:
+    image: percona/mongodb_exporter:0.43.1
+    environment:
+      MONGODB_URI: ${GATEWAY_DB_URL}
+    networks:
+      - gateway
+    depends_on:
+      gateway-mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+# ----------------------------------- NETWORKS -----------------------------------
+
+networks:
+  auth:
+    driver: bridge
+  mail:
+    driver: bridge
+  clock:
+    driver: bridge
+  rabbitmq:
+    driver: bridge
+  read:
+    driver: bridge
+  register:
+    driver: bridge  
+  score:
+    driver: bridge
+  target:
+    driver: bridge
+  gateway:
+    driver: bridge
+
+# ----------------------------------- VOLUMES -----------------------------------
+
+volumes:
+  auth-mongodb-data:
+  mail-mongodb-data:
+  clock-mongodb-data:
+  read-mongodb-data:
+  register-mongodb-data:
+  score-mongodb-data:
+  target-mongodb-data:
+  gateway-mongodb-data:
+  prometheus:
+  grafana-data:
