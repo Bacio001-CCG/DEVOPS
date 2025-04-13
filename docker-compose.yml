@@ -210,8 +210,7 @@ services:
     restart: always
     networks:
       - rabbitmq
-    attach: false
-
+      
   grafana:
       image: grafana/grafana:11.5.2
       ports:
