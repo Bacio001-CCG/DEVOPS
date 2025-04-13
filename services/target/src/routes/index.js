@@ -106,89 +106,11 @@ const rabbitMQClient = new RabbitMQClient([
   },
 ]);
 
-// const testFunction = async (msg) => {
-//   console.log("Received:", msg.content.toString());
-// };
-
-/**
- * @swagger
- * /{target}/photos:
- *   get:
- *     tags:
- *       - Photos
- *     summary: Get a target's photos
- *     description: Retrieves all photos associated with a specific target
- *     parameters:
- *       - in: path
- *         name: target
- *         required: true
- *         description: Target identifier
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: List of photos
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *       500:
- *         description: Server error
- */
-router.get("/:target/photos", async function (req, res) {
-  try {
-    // Connect to RabbitMQ
-    // rabbitMQClient.send("test", "Hello World!");
-
-    // Change the response to verify code update is working
-    const list = [1, 3, 5, 7, 9]; // Changed values
-
-    return res.status(200).json(list);
-  } catch (err) {
-    return res
-      .status(500)
-      .json({ message: err?.message ?? "Internal Server Error" });
-  }
-});
-
-// Use authenticateOrganizerJWT if you want to restrict this route to users with role organizers only
-/**
- * @swagger
- * /{target}/photo:
- *   post:
- *     tags:
- *       - Photos
- *     summary: Upload a photo for a target
- *     description: Uploads a new photo associated with a specific target
- *     parameters:
- *       - in: path
- *         name: target
- *         required: true
- *         description: Target identifier
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               file:
- *                 type: string
- *                 format: binary
- *                 description: The photo file to upload
- *     responses:
- *       200:
- *         description: Photo successfully received
- *       500:
- *         description: Server error
- */
 router.post("/:target/photo", async function (req, res) {
   try {
     const files = req.files;
     const formData = req.body;
-    const username = req.user.username;
+    const username = req.headers['x-user-username'];
 
     if (!files || Object.keys(files).length === 0) {
       return res.status(400).json({ message: "No files were uploaded." });
@@ -229,11 +151,11 @@ router.post("/:target/photo", async function (req, res) {
   }
 });
 
-router.get("/:target/myScores", async function (req, res) {
+router.get("/:target/my-scores", async function (req, res) {
   try {
     const scores = await db
       .collection("photos")
-      .find({ target: req.params.target, owner: req.user.username })
+      .find({ target: req.params.target, owner: req.headers['x-user-username']})
       .toArray();
 
     return res.status(200).json(scores);
@@ -248,7 +170,7 @@ router.get("/:target/myScores", async function (req, res) {
 router.delete("/photo/:photoId", async (req, res) => {
   try {
     const photoId = req.params.photoId;
-    const username = req.user.username;
+    const username = req.headers['x-user-username'];
     
     const photo = await db
       .collection("photos")

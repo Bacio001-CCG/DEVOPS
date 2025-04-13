@@ -6,17 +6,6 @@ const router = express.Router();
 
 const rabbitMQClient = new RabbitMQClient([]);
 
-router.get("/", async function (req, res) {
-  try {
-    const list = [];
-    return res.status(200).json(list);
-  } catch (err) {
-    return res
-      .status(500)
-      .json({ message: err?.message ?? "Internal Server Error" });
-  }
-});
-
 router.post("/", async function (req, res) {
   try {
     const files = req.files;
@@ -28,8 +17,6 @@ router.post("/", async function (req, res) {
     const time = formData.time;
     const username = req.headers['x-user-username'];
     const email = req.headers['x-user-email'];
-    console.log("Username from headers:", username);
-    console.log("Email from headers:", email);
     const target = Math.random().toString(36).substring(2, 15);
 
     const originalDate = new Date(`${date}T${time}`);
@@ -87,7 +74,7 @@ router.post("/", async function (req, res) {
 router.get("/target/:target/results", async function (req, res) {
   try {
     const { target } = req.params;
-    const username = req.user.username;
+    const username = req.headers['x-user-username'];
 
     // Check ownership
     const targetDoc = await db.collection("registration").findOne({ target, owner: username });
@@ -109,7 +96,7 @@ router.get("/target/:target/results", async function (req, res) {
 router.delete("/target/:target", async function (req, res) {
   try {
     const { target } = req.params;
-    const username = req.user.username;
+    const username = req.headers['x-user-username'];
 
     // Check ownership
     const targetDoc = await db.collection("registration").findOne({ target, owner: username });
@@ -133,7 +120,7 @@ router.delete("/target/:target", async function (req, res) {
 router.delete("/target/:target/photo/:photoId", async function (req, res) {
   try {
     const { target, photoId } = req.params;
-    const username = req.user.username;
+    const username = req.headers['x-user-username'];
 
     // Check ownership
     const targetDoc = await db.collection("registration").findOne({ target, owner: username });
