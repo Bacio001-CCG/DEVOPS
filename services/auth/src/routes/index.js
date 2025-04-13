@@ -1,6 +1,5 @@
 import express from "express";
 import { db } from "../database.js";
-import passport from "../config/passport.js";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -9,17 +8,6 @@ import RabbitMQClient from "../rabbitmq.js";
 const router = express.Router();
 
 const rabbitMQClient = new RabbitMQClient();
-
-router.get("/", async function (req, res) {
-  try {
-    const list = [];
-    return res.status(200).json(list);
-  } catch (err) {
-    return res
-      .status(500)
-      .json({ message: err?.message ?? "Internal Server Error" });
-  }
-});
 
 router.post("/register", async function (req, res) {
   console.log("Registering user:", req.body);
@@ -112,32 +100,5 @@ router.post("/login", async function (req, res) {
     return res.status(500).json({ message: err?.message ?? "Internal Server Error" });
   }
 });
-
-router.get(
-  "/me",
-  passport.authenticate("jwt", { session: false }),
-  async function (req, res) {
-    try {
-      const user = await db
-        .collection("users")
-        .findOne({ _id: req.user._id }, { projection: { password: 0 } });
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      return res.status(200).json({
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      });
-    } catch (err) {
-      console.error("Get user error:", err);
-      return res
-        .status(500)
-        .json({ message: err.message ?? "Internal Server Error" });
-    }
-  }
-);
 
 export default router;
